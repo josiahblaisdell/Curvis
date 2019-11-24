@@ -10,15 +10,17 @@
 #include "Logger.h"
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
+#include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 #include <OpenMesh/Core/IO/MeshIO.hh>
-#include "plyUtility.h"
 #define GLM_ENABLE_EXPERIMENTAL
-typedef OpenMesh::PolyMesh_ArrayKernelT<>  Mesh;
+typedef OpenMesh::PolyMesh_ArrayKernelT<>  PolyMesh;
+typedef OpenMesh::TriMesh_ArrayKernelT<>  TriMesh;
 class VisObject {
 public:
 	static void initVisObject();
 	static Logger* getLog();
-	static Mesh poly;
+	static PolyMesh polymesh;
+	static TriMesh trimesh;
 	VisObject();
 	~VisObject();
 private:

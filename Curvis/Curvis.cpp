@@ -6,18 +6,45 @@ Curvis::Curvis(QWidget *parent)
 	ui.setupUi(this);
 	initVisObject();
 	int x = 0;
-	//qDebug() << connect(ui.btn_loadply, SIGNAL(clicked()), this, SLOT(on_btn_loadply_clicked()));
+	std::vector<std::string> shaderpaths;
 }
 
 void Curvis::on_btn_loadply_clicked() {
+	ui.hatchWidget->isTriMesh = true;
 	ui.btn_loadply->setEnabled(false);
-	
 	QFile filepath = QFileDialog::getOpenFileName(this, tr("Open .vert File"), ".\\sampledata", tr("ply Files (*.ply)"));
 	plyPath = QString(filepath.fileName());
 	if (plyPath.size() == 0) return;
 	getLog()->Write(DEBUG, "on_btn_loadply_clicked()", "Loading PLY at file: " + filepath.fileName().toStdString());
-	OpenMesh::IO::read_mesh(poly, plyPath.toStdString());
 	ui.plypath->setText(filepath.fileName());
-	QTimer::singleShot(1000, [&] { ui.btn_loadply->setEnabled(true); });
+	if (!filepath.exists()) return;
+	OpenMesh::IO::read_mesh(trimesh, plyPath.toStdString());
+	ui.hatchWidget->updateMesh();
+	//ADD SHADERS HERE
+	std::vector<std::string> shaderpaths;
+	shaderpaths.push_back(".\\Shaders\\cube_vertex_shader.vert");
+	shaderpaths.push_back(".\\Shaders\\cube_frag_shader.frag");
+	_glslAttributes.push_back("inPosition");
+	_glslAttributes.push_back("inNormal");
+	_glslAttributes.push_back("inColor");
+	_glslUniforms.push_back("uModelMatrix");
+	_glslUniforms.push_back("uViewMatrix");
+	_glslUniforms.push_back("uProjection");
+	ui.hatchWidget->_dataShader = new GLSLShader(shaderpaths, &_glslUniforms, &_glslAttributes, ui.hatchWidget->getContext());
+	update();
+}
+
+void Curvis::on_runButton_clicked() {
+	//ADD SHADERS HERE
+	std::vector<std::string> shaderpaths;
+	shaderpaths.push_back(".\\Shaders\\cube_vertex_shader.vert");
+	shaderpaths.push_back(".\\Shaders\\cube_frag_shader.frag");
+	_glslAttributes.push_back("inPosition");
+	_glslAttributes.push_back("inNormal");
+	_glslAttributes.push_back("inColor");
+	_glslUniforms.push_back("uModelMatrix");
+	_glslUniforms.push_back("uViewMatrix");
+	_glslUniforms.push_back("uProjection");
+	ui.hatchWidget->_dataShader = new GLSLShader(shaderpaths, &_glslUniforms, &_glslAttributes, ui.hatchWidget->getContext());
 	update();
 }

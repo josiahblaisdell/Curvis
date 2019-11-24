@@ -12,6 +12,13 @@
 #include "glew.h"
 #include "ui_Curvis.h"
 #include <qtimer.h>
+#include <qopenglfunctions.h>
+#include <QOpenGLExtraFunctions>
+#include <QOpenGLShader>
+#include <qoffscreensurface.h>
+#include <qopenglvertexarrayobject.h>
+#include <qopenglbuffer.h>
+
 typedef std::tuple<bool, GLenum, GLuint, std::string> ShaderTuple;
 class Curvis : public QMainWindow, VisObject
 {
@@ -29,9 +36,19 @@ private:
 	std::vector<ShaderTuple> shaders;
 	std::vector<std::string> _glslUniforms;
 	std::vector<std::string> _glslAttributes;
+	QOpenGLContext *_context;
+	QSurfaceFormat _format;
+	QOpenGLVertexArrayObject*	vaoObject;
+	QOpenGLBuffer*				vboObject;
+	QOpenGLBuffer*				eboObject;
+	GLfloat *vertices;
+	GLfloat *normals;
+	GLfloat *colors;
+	GLuint *indices;
 	QString plyPath;
 	QStringList shaderCompileLog;
 
 private slots:
 	void on_btn_loadply_clicked();
+	void on_runButton_clicked();
 };

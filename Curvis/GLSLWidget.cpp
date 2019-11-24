@@ -73,6 +73,8 @@ _xRot(0),
 _yRot(0),
 _zRot(0),
 _isTransparent(false) {
+	m_scale.setToIdentity();
+	m_scale.scale(1.f, 1.f, 1.f);
 	_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
 	if (_isTransparent) {
 		QSurfaceFormat fmt = format();

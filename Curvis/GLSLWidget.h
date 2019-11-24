@@ -105,6 +105,7 @@ protected:
 	QMatrix4x4 m_proj;
 	QMatrix4x4 m_camera;
 	QMatrix4x4 m_world;
+	QMatrix4x4 m_scale;
 	bool _isTransparent;
 
 };
