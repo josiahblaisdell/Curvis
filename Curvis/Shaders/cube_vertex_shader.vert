@@ -11,7 +11,7 @@ out vec3 vWorldNormal;
 out vec3 vLightPos;
 void main(){
 	vWorldPos = (uModelMatrix*inPosition).xyz;
-	vWorldNormal = normalize( mat3(uModelMatrix)*inNormal );
+	vWorldNormal = normalize( inNormal );
 	vColor = inColor;
 	vLightPos = vec3(1,1,1);
 	gl_Position = uProjection*uViewMatrix*uModelMatrix*inPosition;

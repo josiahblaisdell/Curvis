@@ -18,7 +18,11 @@ void Curvis::on_btn_loadply_clicked() {
 	getLog()->Write(DEBUG, "on_btn_loadply_clicked()", "Loading PLY at file: " + filepath.fileName().toStdString());
 	ui.plypath->setText(filepath.fileName());
 	if (!filepath.exists()) return;
-	OpenMesh::IO::read_mesh(trimesh, plyPath.toStdString());
+	//trimesh.request_face_normals();
+	//trimesh.request_halfedge_normals();
+	//trimesh.request_vertex_normals();
+	OpenMesh::IO::Options ropt;
+	OpenMesh::IO::read_mesh(trimesh, plyPath.toStdString(),ropt);
 	ui.hatchWidget->updateMesh();
 	//ADD SHADERS HERE
 	std::vector<std::string> shaderpaths;

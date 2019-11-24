@@ -1,7 +1,7 @@
 #pragma once
-#include <VisObject.h>
-#include <OpenGLFiles\glm-0.9.9-a2\glm\glm.hpp>
-#include <OpenGLFiles\glew\include\GL\glew.h>
+#include "VisObject.h"
+#include <glm\glm.hpp>
+#include "OpenGLFiles\glew\include\GL\glew.h"
 #include <gl\GL.h>
 #include <string>
 #include <stdio.h>

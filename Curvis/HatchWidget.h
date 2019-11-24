@@ -18,11 +18,12 @@ struct SimplePolyFace {
 	PolyMesh::VertexHandle v4;
 };
 struct SimpleTriFace {
-	SimpleTriFace(TriMesh::VertexHandle p1, TriMesh::VertexHandle p2, TriMesh::VertexHandle p3) { v1 = p1; v2 = p2; v3 = p3; }
-	SimpleTriFace(TriMesh::VertexHandle vs[3]) { v1 = vs[0]; v2 = vs[1]; v3 = vs[2]; }
+	SimpleTriFace(TriMesh::VertexHandle p1, TriMesh::VertexHandle p2, TriMesh::VertexHandle p3, TriMesh::FaceHandle face) { v1 = p1; v2 = p2; v3 = p3; f = face; }
+	SimpleTriFace(TriMesh::VertexHandle vs[3], TriMesh::FaceHandle face) { v1 = vs[0]; v2 = vs[1]; v3 = vs[2]; f = face; }
 	TriMesh::VertexHandle v1;
 	TriMesh::VertexHandle v2;
 	TriMesh::VertexHandle v3;
+	TriMesh::FaceHandle f;
 };
 
 class HatchWidget : public GLSLWidget, public VisObject
@@ -49,6 +50,7 @@ protected:
 	void GetTriMesh();
 	bool SetupVertexArrayObject();
 	virtual void cleanup() override;
+	glm::vec3 CalcFaceNormal(SimpleTriFace f);
 	virtual void setupVertexAttribs() override;
 	QOpenGLContext *_context;
 	QSurfaceFormat _format;

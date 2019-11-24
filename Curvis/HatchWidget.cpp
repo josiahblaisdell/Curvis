@@ -46,6 +46,13 @@ void HatchWidget::cleanup()
 	doneCurrent();
 }
 
+glm::vec3 HatchWidget::CalcFaceNormal(SimpleTriFace face) {
+	PolyMesh::Point u = trimesh.point(face.v2) - trimesh.point(face.v1);
+	PolyMesh::Point v = trimesh.point(face.v3) - trimesh.point(face.v1);
+	PolyMesh::Point pN = OpenMesh::cross(u, v);
+	return glm::vec3(pN[0], pN[1], pN[2]);
+}
+
 void HatchWidget::setupVertexAttribs()
 {
 	qDebug() << vboObject->bind();
@@ -86,23 +93,22 @@ void HatchWidget::GetPolyMesh() {
 	colors.clear();
 	indices.clear();
 	//get the face & vertex normals
-	polymesh.request_face_normals();
-	polymesh.request_vertex_normals();
+	polymesh.update_normals();
 	PolyMesh::FaceIter f_it, f_end(polymesh.faces_end());
 	PolyMesh::FaceVertexIter fv_it, fv_end;
 	PolyMesh::VertexIter v_it, v_end(polymesh.vertices_end());
 	//create the vertices array
 	for (v_it = polymesh.vertices_begin(); v_it != v_end; v_it++) {
-		OpenMesh::Vec3f point = polymesh.point(v_it.handle());
-		float x = point[0];
-		float y = point[1];
-		float z = point[2];
+		float x = polymesh.point(v_it.handle())[0];
+		float y = polymesh.point(v_it.handle())[1];
+		float z = polymesh.point(v_it.handle())[2];
 		vertices.push_back(glm::vec4(x, y, z, 1.f));
 		verts_n++;
 	}
 	//create the normals array (per vertex normals)
 	for (v_it = polymesh.vertices_begin(); v_it != v_end; v_it++) {
-		OpenMesh::Vec3f normal = polymesh.calc_vertex_normal(v_it.handle());
+		OpenMesh::Vec3f normal = polymesh.normal(*v_it);
+			//polymesh.calc_vertex_normal(v_it.handle());
 		GLfloat x = normal[0];
 		GLfloat y = normal[1];
 		GLfloat z = normal[2];
@@ -133,7 +139,6 @@ void HatchWidget::GetPolyMesh() {
 	nsize = sizeof(GLfloat) * 3 * norms_n;
 	csize = sizeof(GLfloat) * 4 * colors_n;
 	isize = sizeof(GLuint)*indices_n;
-	polymesh.update_normals();
 	polymesh.release_face_normals();
 	polymesh.release_vertex_normals();
 }
@@ -148,32 +153,42 @@ void HatchWidget::GetTriMesh() {
 	colors.clear();
 	indices.clear();
 	//get the face & vertex normals
-	trimesh.request_face_normals();
-	trimesh.request_vertex_normals();
-	trimesh.update_face_normals();
-	trimesh.update_halfedge_normals();
-	trimesh.update_vertex_normals();
+	//trimesh.request_face_normals();
+	//trimesh.request_halfedge_normals();
+	//trimesh.request_vertex_normals();
+	if (trimesh.has_vertex_normals()) {
+		int x = 0;
+	}
+	trimesh.update_normals();
 
 
 	TriMesh::FaceIter f_it, f_end(trimesh.faces_end());
 	TriMesh::FaceVertexIter fv_it, fv_end;
 	TriMesh::VertexIter v_it, v_end(trimesh.vertices_end());
+	//for (f_it = trimesh.faces_begin(); f_it != f_end; f_it++) {
+	//	fv_it = trimesh.fv_iter(*f_it);
+	//	//TriMesh::Point v0(trimesh.point(fv_it));
+	//	//fv_it++;
+	//	//TriMesh::Point v1(trimesh.point(fv_it));
+	//	//fv_it++;
+	//	//TriMesh::Point v2(trimesh.point(*fv_it));
+	//	SimpleTriFace f(trimesh.vertex_handle(fv_it), trimesh.vertex_handle(++fv_it), trimesh.vertex_handle(++fv_it), trimesh.face(*f_it));
+	//}
 	//create the vertices array
 	for (v_it = trimesh.vertices_begin(); v_it != v_end; v_it++) {
-		OpenMesh::Vec3f point = trimesh.point(v_it.handle());
-		float x = point[0];
-		float y = point[1];
-		float z = point[2];
+		GLfloat x = trimesh.point(v_it.handle())[0];
+		GLfloat y = trimesh.point(v_it.handle())[1];
+		GLfloat z = trimesh.point(v_it.handle())[2];
 		vertices.push_back(glm::vec4(x, y, z, 1.f));
-		verts_n++;
-	}
-	//create the normals array (per face normals)
-	for (v_it = trimesh.vertices_begin(); v_it != v_end; v_it++) {
-		OpenMesh::Vec3f normal = trimesh.calc_vertex_normal(*v_it);
-		GLfloat x = normal[0];
-		GLfloat y = normal[1];
-		GLfloat z = normal[2];
+		OpenMesh::Vec3f normal;
+		trimesh.calc_vertex_normal_correct(*v_it,normal);
+
+		normal = normal.normalize();
+		x = normal[0];
+		y = normal[1];
+		z = normal[2];
 		normals.push_back(glm::vec3(x, y, z));
+		verts_n++;
 		norms_n++;
 	}
 	//indices for vertices are given by iterating over faces.
@@ -200,7 +215,6 @@ void HatchWidget::GetTriMesh() {
 	nsize = sizeof(GLfloat) * 3 * norms_n;
 	csize = sizeof(GLfloat) * 4 * colors_n;
 	isize = sizeof(GLuint)*indices_n;
-	trimesh.update_normals();
 	trimesh.release_face_normals();
 	trimesh.release_vertex_normals();
 }

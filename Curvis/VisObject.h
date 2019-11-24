@@ -11,10 +11,15 @@
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
-#include <OpenMesh/Core/IO/MeshIO.hh>
 #define GLM_ENABLE_EXPERIMENTAL
-typedef OpenMesh::PolyMesh_ArrayKernelT<>  PolyMesh;
-typedef OpenMesh::TriMesh_ArrayKernelT<>  TriMesh;
+struct MyTraits : OpenMesh::DefaultTraits {
+	VertexAttributes(OpenMesh::Attributes::Normal |
+		OpenMesh::Attributes::Color);
+
+	FaceAttributes(OpenMesh::Attributes::Normal);
+};
+typedef OpenMesh::PolyMesh_ArrayKernelT<MyTraits>  PolyMesh;
+typedef OpenMesh::TriMesh_ArrayKernelT<MyTraits>  TriMesh;
 class VisObject {
 public:
 	static void initVisObject();
