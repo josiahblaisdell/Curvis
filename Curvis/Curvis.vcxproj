@@ -94,7 +94,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CurvComputer.cpp" />
     <ClCompile Include="Curvis.cpp" />
+    <ClCompile Include="CurvTriMesh.cpp" />
     <ClCompile Include="GLSLShader.cpp" />
     <ClCompile Include="GLSLWidget.cpp" />
     <ClCompile Include="HatchWidget.cpp" />
@@ -115,7 +117,10 @@
     <QtMoc Include="GLSLShader.h" />
     <QtMoc Include="GLSLWidget.h" />
     <QtMoc Include="HatchWidget.h" />
+    <ClInclude Include="CurvComputer.h" />
+    <ClInclude Include="CurvTriMesh.h" />
     <ClInclude Include="Logger.h" />
+    <ClInclude Include="typdef.h" />
     <ClInclude Include="VisObject.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
