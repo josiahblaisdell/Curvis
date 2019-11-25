@@ -5,13 +5,15 @@ layout (location = 2) in vec4 inColor;
 uniform mat4 uModelMatrix;
 uniform mat4 uViewMatrix;
 uniform mat4 uProjection;
+//uniform vec3 uEyePos;
 out vec4 vColor;
 out vec3 vWorldPos;
 out vec3 vWorldNormal;
 out vec3 vLightPos;
 void main(){
 	vWorldPos = (uModelMatrix*inPosition).xyz;
-	vWorldNormal = normalize( inNormal );
+	mat4 normalMat = transpose(inverse(uViewMatrix*uModelMatrix));
+	vWorldNormal = normalize( mat3(normalMat)*inNormal );
 	vColor = inColor;
 	vLightPos = vec3(1,1,1);
 	gl_Position = uProjection*uViewMatrix*uModelMatrix*inPosition;

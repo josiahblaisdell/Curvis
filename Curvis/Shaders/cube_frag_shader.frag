@@ -1,13 +1,14 @@
 #version 400 compatibility 
 in vec4 vColor;
 in vec3 vWorldPos;
-in vec3 vWorldNormal;
+varying vec3 vWorldNormal;
 in vec3 vLightPos;
-uniform vec3 uEyePos;
+//uniform vec3 uEyePos;
 out vec4 fragColor;
 
 void main()
 { 
+	vec3 uEyePos = vec3(0.0,0.0,0.0);
 	float kD = .9;
 	float kS = .25;
 	float kA = 1.0;
@@ -27,4 +28,5 @@ void main()
 	float lightColor = edge*(diffuse + specular);
 	//fragColor = vec4(lightColor, lightColor, lightColor,1);
 	fragColor = vec4(vWorldNormal,1);
+	fragColor = vec4(abs(fragColor.x),abs(fragColor.y), abs(fragColor.z),1.);
 }

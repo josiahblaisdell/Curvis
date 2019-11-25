@@ -68,17 +68,20 @@ void HatchWidget::setupVertexAttribs()
 }
 
 void HatchWidget::OnUpdate() {
+	context()->functions()->glClearColor(1, 1, 1, _isTransparent ? 0 : 1);
 	context()->functions()->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	context()->functions()->glEnable(GL_DEPTH_TEST);
 	if (_dataShader != NULL) {
-		QOpenGLVertexArrayObject::Binder vaoBinder(vaoObject);
+		vaoObject->bind();
 		_dataShader->Use();
 		_dataShader->SetUniform("uProjection", m_proj);
 		_dataShader->SetUniform("uModelMatrix", m_world*m_scale);
 		_dataShader->SetUniform("uViewMatrix", m_camera);
-		_dataShader->SetUniform("uEyePos", glm::vec3(0.0,0.0,0.0));
-		if(isTriMesh) context()->extraFunctions()->glDrawElements(GL_TRIANGLES, isize, GL_UNSIGNED_INT, (GLvoid*)0);
-		else context()->extraFunctions()->glDrawElements(GL_QUADS, isize, GL_UNSIGNED_INT, (GLvoid*)0);
+		//_dataShader->SetUniform("uEyePos", glm::vec3(0.0,0.0,0.0));
+		if (isTriMesh) {
+			context()->extraFunctions()->glDrawElements(GL_TRIANGLES, isize-1, GL_UNSIGNED_INT, (GLvoid*)0);
+		}
+		//else context()->extraFunctions()->glDrawElements(GL_QUADS, isize, GL_UNSIGNED_INT, (GLvoid*)0);
 		_dataShader->CheckGlErrors("Update()");
 	}
 }
@@ -153,55 +156,60 @@ void HatchWidget::GetTriMesh() {
 	colors.clear();
 	indices.clear();
 	//get the face & vertex normals
-	//trimesh.request_face_normals();
+	trimesh.request_face_normals();
+	trimesh.update_face_normals();
+	trimesh.request_vertex_normals();
+	trimesh.update_vertex_normals();
 	//trimesh.request_halfedge_normals();
 	//trimesh.request_vertex_normals();
 	if (trimesh.has_vertex_normals()) {
 		int x = 0;
 	}
-	trimesh.update_normals();
+	//trimesh.update_normals();
 
 
 	TriMesh::FaceIter f_it, f_end(trimesh.faces_end());
 	TriMesh::FaceVertexIter fv_it, fv_end;
 	TriMesh::VertexIter v_it, v_end(trimesh.vertices_end());
-	//for (f_it = trimesh.faces_begin(); f_it != f_end; f_it++) {
-	//	fv_it = trimesh.fv_iter(*f_it);
-	//	//TriMesh::Point v0(trimesh.point(fv_it));
-	//	//fv_it++;
-	//	//TriMesh::Point v1(trimesh.point(fv_it));
-	//	//fv_it++;
-	//	//TriMesh::Point v2(trimesh.point(*fv_it));
-	//	SimpleTriFace f(trimesh.vertex_handle(fv_it), trimesh.vertex_handle(++fv_it), trimesh.vertex_handle(++fv_it), trimesh.face(*f_it));
+	//for (f_it = trimesh.faces_begin(); f_it != f_end; ++f_it) {
+	//	fv_it = trimesh.fv_begin(*f_it);
+	//	fv_end = trimesh.fv_end(*f_it);
+	//	TriMesh::VertexHandle handles[3];
+	//	int k = 0;
+	//	for (fv_it = trimesh.fv_begin(*f_it); fv_it != fv_end; ++fv_it) {
+	//		handles[k] = trimesh.vertex_handle(fv_it->idx());
+	//		k++;
+	//	}
+
+	//	SimpleTriFace f(handles, trimesh.face_handle(f_it->idx()));
+	//	glm::vec3 normal = CalcFaceNormal(f);
+	//	OpenMesh::Vec3f n(normal.x, normal.y, normal.z);
+	//	trimesh.set_normal(*f_it, n);
 	//}
 	//create the vertices array
-	for (v_it = trimesh.vertices_begin(); v_it != v_end; v_it++) {
+	for (v_it = trimesh.vertices_begin(); v_it != v_end; ++v_it) {
 		GLfloat x = trimesh.point(v_it.handle())[0];
 		GLfloat y = trimesh.point(v_it.handle())[1];
 		GLfloat z = trimesh.point(v_it.handle())[2];
 		vertices.push_back(glm::vec4(x, y, z, 1.f));
-		OpenMesh::Vec3f normal;
-		trimesh.calc_vertex_normal_correct(*v_it,normal);
-
-		normal = normal.normalize();
-		x = normal[0];
-		y = normal[1];
-		z = normal[2];
-		normals.push_back(glm::vec3(x, y, z));
+		TriMesh::Normal n(0, 0, 0);
+		n = trimesh.normal(v_it.handle());
+		n = n.normalize();
+		normals.push_back(glm::vec3(n[0], n[1], n[2]));
 		verts_n++;
 		norms_n++;
 	}
 	//indices for vertices are given by iterating over faces.
-	for (f_it = trimesh.faces_begin(); f_it != f_end; f_it++) {
-		fv_end = trimesh.fv_end(*f_it);
-		for (fv_it = trimesh.fv_begin(*f_it); fv_it != fv_end; fv_it++) {
-			GLuint idx = fv_it->idx();
+	for (f_it = trimesh.faces_begin(); f_it != f_end; ++f_it) {
+		TriMesh::FaceVertexCCWIter fv_ccw, fv_ccwend = trimesh.fv_ccwend(*f_it);
+		for (fv_ccw = trimesh.fv_ccwbegin(*f_it); fv_ccw != fv_ccwend; ++fv_ccw) {
+			GLuint idx = trimesh.vertex_handle(fv_ccw->idx()).idx();
 			indices.push_back(idx);
 			indices_n++;
 		}
 	}
 	//create colors for vertices
-	for (v_it = trimesh.vertices_begin(); v_it != v_end; v_it++) {
+	for (v_it = trimesh.vertices_begin(); v_it != v_end; ++v_it) {
 		GLfloat r = 1.f;
 		GLfloat g = 0.f;
 		GLfloat b = 0.f;
@@ -215,8 +223,7 @@ void HatchWidget::GetTriMesh() {
 	nsize = sizeof(GLfloat) * 3 * norms_n;
 	csize = sizeof(GLfloat) * 4 * colors_n;
 	isize = sizeof(GLuint)*indices_n;
-	trimesh.release_face_normals();
-	trimesh.release_vertex_normals();
+
 }
 
 //default shape is a cube.
@@ -272,8 +279,6 @@ bool HatchWidget::SetupVertexArrayObject() {
 		eboObject = new QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
 		vboObject = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 
-		context()->functions()->glClearColor(1, 1, 1, _isTransparent ? 0 : 1);
-
 		//Create the vertex array object to store state of vbo.
 		vaoObject->create();
 		//Create the vertex buffer
@@ -282,8 +287,7 @@ bool HatchWidget::SetupVertexArrayObject() {
 		eboObject->create();
 	}
 	//bind the vertex array
-	QOpenGLVertexArrayObject::Binder vaoBinder(vaoObject);
-
+	vaoObject->bind();
 
 	//bind the vertex buffer to the current vertex array
 
@@ -313,7 +317,8 @@ bool HatchWidget::SetupVertexArrayObject() {
 	//offset for colors is 4*pts.size() (size of vertices array) + 3*pts.size() (size of normals array)
 	context()->functions()->glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)(vsize + nsize));
 	vboObject->release();
-
+	eboObject->release();
+	vaoObject->release();
 	return true;
 }
 

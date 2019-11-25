@@ -349,7 +349,7 @@ void GLSLShader::SetAttribute(char * name, float val)
 		const GLint gVal = val;
 		char c[10];
 		itoa(val, c, 10);
-		getLog()->Write(DEBUG, "SetAttribute(float)", "Setting " + std::string(name) + " to " + std::string(c));
+		//getLog()->Write(DEBUG, "SetAttribute(float)", "Setting " + std::string(name) + " to " + std::string(c));
 		_qOpenGLFunctions->glUniform1i(location, val);
 	}
 }
@@ -362,7 +362,7 @@ void GLSLShader::SetUniform(char * name, float val)
 		const GLint gVal = val;
 		char c[10];
 		itoa(val, c, 10);
-		getLog()->Write(DEBUG, "SetUniform(float)", "Setting " + std::string(name) + " to " + std::string(c));
+		//getLog()->Write(DEBUG, "SetUniform(float)", "Setting " + std::string(name) + " to " + std::string(c));
 		_qOpenGLFunctions->glUniform1f(location, val);
 	}
 	CheckGlErrors("SetUniform(float)");
@@ -391,7 +391,7 @@ void GLSLShader::SetUniform(char * name, QMatrix4x4 & m4)
 	if (location < 0)
 		getLog()->Write(DEBUG, "SetUniform(QMatrix4x4)", "Cannot find Uniform variable " + std::string(name));
 	else {
-		getLog()->Write(DEBUG, "SetUniform(QMatrix4x4)", "Setting " + std::string(name) + " to Matrix4x4 value.");
+		//getLog()->Write(DEBUG, "SetUniform(QMatrix4x4)", "Setting " + std::string(name) + " to Matrix4x4 value.");
 		_qOpenGLFunctions->glUniformMatrix4fv(location, 1, false, m4.data());
 
 	}
@@ -404,7 +404,7 @@ void GLSLShader::SetUniform(char * name, QMatrix3x3 & m3)
 	if (location < 0)
 		getLog()->Write(DEBUG, "SetUniform(QMatrix3x3)", "Cannot find Uniform variable " + std::string(name));
 	else {
-		getLog()->Write(DEBUG, "SetUniform(QMatrix3x3)", "Setting " + std::string(name) + " to Matrix3x3 value.");
+		//getLog()->Write(DEBUG, "SetUniform(QMatrix3x3)", "Setting " + std::string(name) + " to Matrix3x3 value.");
 		_qOpenGLFunctions->glUniformMatrix3fv(location, 1, false, m3.data());
 	}
 	CheckGlErrors("SetUniform(QMatrix3x3)");
@@ -416,7 +416,7 @@ void GLSLShader::SetUniform(char * name, glm::vec4 & v)
 	if (location < 0)
 		getLog()->Write(DEBUG, "SetUniform(vec4)", "Cannot find Uniform variable " + std::string(name));
 	else {
-		getLog()->Write(DEBUG, "SetUniform(vec4)", "Setting " + std::string(name) + " to vec4 value.");
+		//getLog()->Write(DEBUG, "SetUniform(vec4)", "Setting " + std::string(name) + " to vec4 value.");
 		GLfloat glv[4] = { v.x, v.y, v.z,v.w };
 		_qOpenGLFunctions->glUniform3fv(location, 1, glv);
 	}
@@ -430,7 +430,7 @@ void GLSLShader::SetUniform(char * name, glm::vec3 & v)
 	if (location < 0)
 		getLog()->Write(DEBUG, "SetUniform(vec3)", "Cannot find Uniform variable " + std::string(name));
 	else {
-		getLog()->Write(DEBUG, "SetUniform(QMatrix3x3)", "Setting " + std::string(name) + " to vec3 value.");
+		//getLog()->Write(DEBUG, "SetUniform(vec3)", "Setting " + std::string(name) + " to vec3 value.");
 		GLfloat glv[3] = { v.x, v.y, v.z };
 		_qOpenGLFunctions->glUniform3fv(location, 1, glv);
 	}
