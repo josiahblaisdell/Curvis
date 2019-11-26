@@ -240,65 +240,31 @@ void HatchWidget::OnInit() {
 
 bool HatchWidget::SetupVertexArrayObject() {
 	_context->makeCurrent(_surface);
-	//_dataShader->Use();
-	//if (vaoObject == nullptr) {
-
-		//connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &GLSLWidget::cleanup);
-		//initializeOpenGLFunctions();
-		//vaoObject = new QOpenGLVertexArrayObject();
-		//eboObject = new QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
-		//vboObject = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
-		//cboObject = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
-		//nboObject = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
-
-		//Create the vertex array object to store state of vbo.
-		//vaoObject->create();
-		//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create VAO)");
-		//Create the vertex buffer
-		//vboObject->create();
-		//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create VBO)");
-		//Create the normal buffer
-		//nboObject->create();
-		//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create NBO)");
-		//Create the color buffer
-		//cboObject->create();
-		//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create CBO)");
-		//create the index buffer
-		//eboObject->create();
-		//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create EBO)");
-	//}
-
-	//bind the vertex array
+	//Create the vertex array & enable attributes for color, normal and vertex
+	//layout(location = 0) in vec4 inPosition;
+	//layout(location = 1) in vec3 inNormal;
+	//layout(location = 2) in vec4 inColor;
 	//-----------------------------------------------------
-	//vaoObject->bind();
 	_ef->glGenVertexArrays(1, &m_VAO);
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create VAO)");
 	_ef->glBindVertexArray(m_VAO);
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (VAO Bind 1)");
-
 	_ef->glEnableVertexAttribArray(0);
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array 0)");
-
-
 	_ef->glEnableVertexAttribArray(1);
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array 1)");
-
-
 	_ef->glEnableVertexAttribArray(2);
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array 2)");
-
 	//-----------------------------------------------------
 
-	//bind the vertex buffer to the current vertex array
+	//Create & Setup the Vertex Buffer that stores normals, colors and vertices
 	//-----------------------------------------------------
-	//vboObject->bind();
 	_ef->glGenBuffers(1, &m_VBO);
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create VBO)");
 	_ef->glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (VBO Bind)");
 
-	//vboObject->allocate(&vertices[0], vsize);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (VBO Allocate)");
+	//write data to GPU
 	_ef->glBufferData(GL_ARRAY_BUFFER, vsize + nsize + csize, (GLvoid*)0, GL_STATIC_DRAW);
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create Buffer Data)");
 	_ef->glBufferSubData(GL_ARRAY_BUFFER, 0, vsize, &vertices[0]);
@@ -307,11 +273,10 @@ bool HatchWidget::SetupVertexArrayObject() {
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Normals)");
 	_ef->glBufferSubData(GL_ARRAY_BUFFER, vsize + nsize, csize, &colors[0]);
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Colors)");
-	
 
-	//vboObject->setUsagePattern(QOpenGLBuffer::StaticDraw);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (VBO UsagePattern)");
-	//_ef->glBindVertexArray(m_VAO);
+	//Configure where in memory the attributes are located (last item is offset, second to last is stride)
+	//       VERTICES                                 NORMALS                             COLORS
+	//[v11v12v13v14v21v22v23v24..vi1vi2vi3] [n11n12n13n21n22n23...ni1ni2ni3] [c11c12c13c14c21c22c23c24...ci1ci2ci3ci4]
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (VAO Bind 2)");
 	_ef->glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer 0)");
@@ -319,72 +284,21 @@ bool HatchWidget::SetupVertexArrayObject() {
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer 1)");
 	_ef->glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)(vsize + nsize));
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer 2)");
-	//context()->functions()->glEnableVertexAttribArray(0);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array 0)");
-	//
-	//context()->functions()->glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vertex attr pointer)");
 	//-----------------------------------------------------
 
-	//bind the normal buffer to the current vertex array
+	//Create & Setup the Vertex Buffer that stores normals, colors and vertices
 	//-----------------------------------------------------
-	//nboObject->bind();
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (NBO Bind)");
-	//
-	//nboObject->allocate(&normals[0], nsize);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (VBO Allocate)");
-	//
-	//nboObject->setUsagePattern(QOpenGLBuffer::StaticDraw);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (VBO UsagePattern)");
-	//
-	//context()->functions()->glEnableVertexAttribArray(1);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable nbo attrib array 1)");
-	//
-	//context()->functions()->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)vsize);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable normals attr pointer)");
-	//-----------------------------------------------------
-
-	//bind the color buffer to the current vertex array
-	//-----------------------------------------------------
-	//cboObject->bind();
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (CBO Bind)");
-	//
-	//cboObject->allocate(&colors[0], csize);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (CBO Allocate)");
-	//
-	//nboObject->setUsagePattern(QOpenGLBuffer::StaticDraw);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (CBO UsagePattern)");
-	//
-	//context()->functions()->glEnableVertexAttribArray(2);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable cbo attrib array 3)");
-	//
-	//context()->functions()->glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid*)(nsize + vsize));
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vertex colors pointer)");
-	//-----------------------------------------------------
-
-	//bind the indices buffer to the current vertex array
-	//-----------------------------------------------------
-	//qDebug() << eboObject->bind();
 	_ef->glGenBuffers(1, &m_EBO);
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create EBO)");
 	_ef->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Bind EBO)");
 	_ef->glBufferData(GL_ELEMENT_ARRAY_BUFFER, isize, &indices[0], GL_STATIC_DRAW);
 	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write EBO)");
-	//eboObject->allocate(&indices[0], isize);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Allocate & initialize EBO)");
-	//eboObject->setUsagePattern(QOpenGLBuffer::StaticDraw);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Usage Pattern EBO)");
+	//-----------------------------------------------------
 
-	//_ef->glUseProgram(0);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Unbind VAO)");
-	//_ef->glBindVertexArray(0);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Unbind VAO)");
-
-	//_ef->glBindVertexArray(m_VAO);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Test Bind)");
-	//_ef->glBindVertexArray(0);
-	//_dataShader->CheckGlErrors("SetupVertexArrayObject() (Test UnBind)");
+	//unbind the vertex array
+	_ef->glBindVertexArray(0);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Unbind VAO)");
 
 	return true;
 }
