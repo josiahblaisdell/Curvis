@@ -8,6 +8,7 @@
 #include "VisObject.h"
 #include "Logger.h"
 #include "GLSLWidget.h"
+#include "CurvComputer.h"
 
 struct SimplePolyFace {
 	SimplePolyFace(PolyMesh::VertexHandle p1, PolyMesh::VertexHandle p2, PolyMesh::VertexHandle p3, PolyMesh::VertexHandle p4) { v1 = p1; v2 = p2; v3 = p3; v4 = p4; }
@@ -34,46 +35,79 @@ class HatchWidget : public GLSLWidget, public VisObject
 public:
 	HatchWidget(QWidget *parent);
 	~HatchWidget();
-	QOpenGLContext* getContext();
+
+	//This is our shader 
 	GLSLShader *_dataShader;
 	void update();
 	bool getCompileStatus(GLenum shadertype);
 	//is the mesh made up of polygons or triangles...
 	bool isTriMesh;
+	//True if we can draw the image (ie: vertex array buffer is done being set up)
+	bool isReady;
+	//Call SetupVertexArrayBuffer() and GetTri/PolyMesh
 	void updateMesh();
-protected:
-	void SetupShaderProgram();
-	//overide function
-	virtual void OnInit() override;
-	virtual void OnUpdate() override;
-	void GetPolyMesh();
-	void GetTriMesh();
-	bool SetupVertexArrayObject();
-	virtual void cleanup() override;
-	glm::vec3 CalcFaceNormal(SimpleTriFace f);
-	virtual void setupVertexAttribs() override;
+	//For sharing context between shader and the window.
 	QOpenGLContext *_context;
-	QSurfaceFormat _format;
-	QOpenGLVertexArrayObject*	vaoObject;
-	QOpenGLBuffer*				vboObject;
-	QOpenGLBuffer*				eboObject;
+	//For setting the current active surface.
+	QSurface* _surface;
+protected:
+	//Initialize the scene with a cube
+	virtual void OnInit() override;
+	//Draw the scene (glDrawElements(...))
+	virtual void OnUpdate() override;
 
+	//Get the points in PolyMesh and store in vertices[]
+	//Get the normals in PolyMesh and store in normals[]
+	//Create the colors for the trimesh
+	void GetPolyMesh();
+
+	//Get the points in trimesh and store in vertices[]
+	//Get the normals in trimesh and store in normals[]
+	//Create the colors for the trimesh
+	void GetTriMesh();
+
+	//Initialize the VAO with the vertices, normals, colors and index buffer. 
+	bool SetupVertexArrayObject();
+
+	//destructor code
+	virtual void cleanup() override;
+
+	//Method to try and calculate face normals manually
+	glm::vec3 CalcFaceNormal(SimpleTriFace f);
+
+	//Vertex array Object ID
+	GLuint m_VAO;
+	//Vertex Buffer Object ID
+	GLuint m_VBO;
+	//Index buffer object ID
+	GLuint m_EBO;
+
+	//Array of vertices in mesh.
 	std::vector<glm::vec4> vertices;
+	//Array of normals in mesh
 	std::vector<glm::vec3> normals;
+	//Array of colors in mesh.
 	std::vector<glm::vec4> colors;
+	//Array of indices into vertices and colors to create the mesh.
 	std::vector<GLuint> indices;
 
-	int _facecount;
 	glm::mat4 m_proj_view;
 	GLuint m_proj_view_id;
+	//number of vertices
 	unsigned long long verts_n;
+	//number of normals
 	unsigned long long norms_n;
+	//number of Colors
 	unsigned long long colors_n;
+	//number of indices
 	unsigned long long indices_n;
 	//store size of GLfloat*num_elements_in_vector*num_vectors
 	GLuint vsize;
+	//store size of GLfloat*num_elements_in_vector*num_vectors
 	GLuint nsize;
+	//store size of GLfloat*num_elements_in_vector*num_vectors
 	GLuint csize;
+	//store size of GLfloat*num_elements_in_vector*num_vectors
 	GLuint isize;
 
 
@@ -81,6 +115,8 @@ private:
 	//OpenGL/Shader variables:
 	bool _fragSuccess;
 	bool _vertSuccess;
+	QOpenGLFunctions* _f;
+	QOpenGLExtraFunctions *_ef;
 public slots:
 	void fragSuccess();
 	void vertSuccess();

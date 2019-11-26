@@ -29,26 +29,12 @@ public:
 
 private:
 	Ui::CurvisClass ui;
-	std::vector<QString> vertexShaderPaths;
-	std::vector<QString> fragShaderPaths;
-	std::vector<GLuint> vertShaderIDs;
-	std::vector<GLuint> fragShaderIDs;
-	std::vector<ShaderTuple> shaders;
+	std::vector<std::string> shaderpaths;
 	std::vector<std::string> _glslUniforms;
 	std::vector<std::string> _glslAttributes;
-	QOpenGLContext *_context;
-	QSurfaceFormat _format;
-	QOpenGLVertexArrayObject*	vaoObject;
-	QOpenGLBuffer*				vboObject;
-	QOpenGLBuffer*				eboObject;
-	GLfloat *vertices;
-	GLfloat *normals;
-	GLfloat *colors;
-	GLuint *indices;
 	QString plyPath;
 	QStringList shaderCompileLog;
 
 private slots:
 	void on_btn_loadply_clicked();
-	void on_runButton_clicked();
 };

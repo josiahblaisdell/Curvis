@@ -36,14 +36,12 @@ GLuint GLSLShader::getProgramID()
 	return _program;
 }
 
-GLSLShader::GLSLShader(std::vector<std::string> filePaths, std::vector<std::string>*  glslUniforms, std::vector<std::string>* glslAttributes, QOpenGLContext *c)
+GLSLShader::GLSLShader(std::vector<std::string> filePaths, std::vector<std::string>*  glslUniforms, std::vector<std::string>* glslAttributes, QOpenGLContext *c, QSurface* s)
 {
 	//current opengl _context has not been set up yet.
 	if (c == NULL) {
 		_context = new QOpenGLContext();
 		_context->create();
-		_surface = new QOffscreenSurface();
-		_surface->create();
 		_context->makeCurrent(_surface);
 		_qOpenGLFunctions = new QOpenGLFunctions(c);
 		_qOpenGLFunctions->initializeOpenGLFunctions();
@@ -51,12 +49,12 @@ GLSLShader::GLSLShader(std::vector<std::string> filePaths, std::vector<std::stri
 	}
 	//current opengl _context has been set up and was passed into constructor.
 	else {
-		_surface = NULL;
+		_surface = s;
 		_context = c;
 		_qOpenGLFunctions = c->functions();
 		_qOpenGLExtraFunctions = c->extraFunctions();
-
 	}
+	_context->makeCurrent(_surface);
 	int i = 0;
 	if (glslUniforms != NULL) for each(auto uniform in *glslUniforms) {
 		_glslUniforms.push_back(std::pair<GLuint, std::string>(i, uniform));
@@ -106,7 +104,10 @@ GLSLShader::GLSLShader(std::vector<std::string> filePaths, std::vector<std::stri
 	getLog()->Write(DEBUG, "GLSLShader()", "Finished adding shaders to shader array.");
 	Create();
 	CheckGlErrors("Constructor()");
-	if (_ready) setupUniforms();
+	if (_ready) {
+		setupAttributes(); 
+		setupUniforms();
+	}
 }
 
 bool GLSLShader::setupUniforms() {
@@ -176,17 +177,6 @@ void GLSLShader::CheckGlErrors(std::string caller) {
 bool GLSLShader::LinkProgram() {
 	getLog()->Write(DEBUG, "LinkProgram()", "Linking the shaders that were compiled. ");
 	int status;
-	//	glewInit();
-	//glProgramParameteriEXT(_program, GL_GEOMETRY_INPUT_TYPE_EXT, GL_TRIANGLES);
-	//_qOpenGLExtraFunctions->glProgramParameteri(_program, GL_GEOMETRY_INPUT_TYPE_EXT, GL_TRIANGLES);
-	//CheckGlErrors("GL_GEOMETRY_INPUT_TYPE_EXT");
-	//glProgramParameteriEXT(_program, GL_GEOMETRY_OUTPUT_TYPE_EXT, GL_TRIANGLE_STRIP);
-	//_qOpenGLExtraFunctions->glProgramParameteri(_program, GL_GEOMETRY_OUTPUT_TYPE_EXT, GL_TRIANGLE_STRIP);
-	//CheckGlErrors("GL_GEOMETRY_OUTPUT_TYPE_EXT");
-	//glProgramParameteriEXT(_program, GL_GEOMETRY_VERTICES_OUT_EXT, 200);
-	//_qOpenGLExtraFunctions->glProgramParameteri(_program, GL_GEOMETRY_VERTICES_OUT_EXT, 200);
-	//CheckGlErrors("GL_GEOMETRY_VERTICES_OUT_EXT");
-	setupAttributes();
 	_qOpenGLFunctions->glLinkProgram(_program);
 	CheckGlErrors("LinkProgram()");
 	_qOpenGLFunctions->glGetProgramiv(_program, GL_LINK_STATUS, &status);
@@ -325,7 +315,7 @@ void GLSLShader::emitShaderCompileSuccess(GLenum t)
 GLSLShader::~GLSLShader()
 {
 	if (_surface != NULL) {
-		_surface->destroy();
+		//_surface->destroy();
 		delete _surface;
 	}
 	_qOpenGLFunctions->glDeleteProgram(_program);

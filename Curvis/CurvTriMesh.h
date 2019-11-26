@@ -1,5 +1,6 @@
 #pragma once
 #include "typdef.h"
+#include <glm\glm.hpp>
 #include <vector>
 
 class CurvTriMesh: public TriMesh
@@ -52,6 +53,8 @@ public:
 	bool GenVertexBuffer(float* out_buffer, int* out_size);
 
 	bool GenVertexNormalBuffer(float* out_buffer, int* out_size);
+
+	bool GenVertexNormalBuffer(std::vector<glm::vec3>* out_buffer, unsigned long long * out_size);
 
 	bool GenVertexMajorDirectionBuffer(float* out_buffer, int* out_size);
 
