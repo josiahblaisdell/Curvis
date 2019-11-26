@@ -192,50 +192,14 @@ void HatchWidget::GetTriMesh() {
 
 //default shape is a cube.
 void HatchWidget::OnInit() {
-	PolyMesh::VertexHandle vhandle[8];
-	std::vector<SimplePolyFace>  face_vhandles;
-	vhandle[0] = polymesh.add_vertex(PolyMesh::Point(-1, -1, 1));
-	vhandle[1] = polymesh.add_vertex(PolyMesh::Point(1, -1, 1));
-	vhandle[2] = polymesh.add_vertex(PolyMesh::Point(1, 1, 1));
-	vhandle[3] = polymesh.add_vertex(PolyMesh::Point(-1, 1, 1));
-	vhandle[4] = polymesh.add_vertex(PolyMesh::Point(-1, -1, -1));
-	vhandle[5] = polymesh.add_vertex(PolyMesh::Point(1, -1, -1));
-	vhandle[6] = polymesh.add_vertex(PolyMesh::Point(1, 1, -1));
-	vhandle[7] = polymesh.add_vertex(PolyMesh::Point(-1, 1, -1));
-
-	face_vhandles.clear();
-	//each element of face_vhandles is an array of vertex handles for a face.
-	SimplePolyFace face1(vhandle[0], vhandle[1], vhandle[2], vhandle[3]);
-	face_vhandles.push_back(face1);
-	polymesh.add_face(vhandle[0], vhandle[1], vhandle[2], vhandle[3]);
-	SimplePolyFace face2( vhandle[7], vhandle[6], vhandle[5], vhandle[4] );
-	face_vhandles.push_back(face2);
-	polymesh.add_face(vhandle[7], vhandle[6], vhandle[5], vhandle[4]);
-	SimplePolyFace face3(vhandle[1], vhandle[0], vhandle[4], vhandle[5]);
-	face_vhandles.push_back(face3);
-	polymesh.add_face(vhandle[1], vhandle[0], vhandle[4], vhandle[5]);
-	SimplePolyFace face4(vhandle[2], vhandle[1], vhandle[5], vhandle[6]);
-	face_vhandles.push_back(face4);
-	polymesh.add_face(vhandle[2], vhandle[1], vhandle[5], vhandle[6]);
-	SimplePolyFace face5(vhandle[3], vhandle[2], vhandle[6], vhandle[7] );
-	face_vhandles.push_back(face5);
-	polymesh.add_face(vhandle[3], vhandle[2], vhandle[6], vhandle[7]);
-	SimplePolyFace face6(vhandle[0], vhandle[3], vhandle[7], vhandle[4] );
-	face_vhandles.push_back(face6);
-	polymesh.add_face(vhandle[0], vhandle[3], vhandle[7], vhandle[4]);
-	//get vertices, normals, and indices
-	//GetPolyMesh();
-	//initializeOpenGLFunctions();
 	context()->functions()->initializeOpenGLFunctions();
 	_context = context();
 	_f = _context->functions();
 	_ef = _context->extraFunctions();
 	_surface = _context->surface();
-	//SetupVertexArrayObject();
 	// Camera never changes in this example.
 	m_camera.setToIdentity();
 	m_camera.translate(_m_camera_position.x(), _m_camera_position.y(), _m_camera_position.z());
-	
 }
 
 bool HatchWidget::SetupVertexArrayObject() {
@@ -306,7 +270,7 @@ bool HatchWidget::SetupVertexArrayObject() {
 void HatchWidget::updateMesh() {
 	//get vertices, normals, and indices
 	if(isTriMesh) GetTriMesh();
-	//else GetPolyMesh();
+	else GetPolyMesh();
 	//setup vao, vbo and ebo
 	SetupVertexArrayObject();
 
