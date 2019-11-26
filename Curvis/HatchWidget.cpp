@@ -72,9 +72,9 @@ void HatchWidget::OnUpdate() {
 }
 
 bool HatchWidget::SetupCurvTriMesh() {
-	curvtrimesh.GetCurvTriMesh(verts_n, norms_n, colors_n, indices_n,
-		vertices, normals, colors, indices,
-		minorcurv, majorcurv, meancurv, gausscurv);
+	curvtrimesh.GetCurvTriMesh(	verts_n, norms_n, colors_n, indices_n,
+								vertices, normals, colors, indices,
+								minorcurv, majorcurv, meancurv, gausscurv);
 
 	static_assert(sizeof(glm::vec3) == sizeof(GLfloat) * 3, "Platform doesn't support vec3 this directly.");
 	static_assert(sizeof(glm::vec4) == sizeof(GLfloat) * 4, "Platform doesn't support vec4 this directly.");

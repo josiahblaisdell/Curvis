@@ -1,7 +1,11 @@
 #include "CurvTriMesh.h"
 #include "CurvComputer.h"
 
-CurvTriMesh::CurvTriMesh(): m_Computed(false) { Init(); }
+CurvTriMesh::CurvTriMesh() :
+	m_Computed(false)
+{
+	Init();
+}
 
 CurvTriMesh::~CurvTriMesh() { }
 
@@ -19,17 +23,7 @@ void CurvTriMesh::Init()
 	this->add_property(m_Mean);
 	this->add_property(m_Gaussain);
 	this->add_property(m_CurvatureDir);
-}
-
-inline CurvTriMesh::PrincipalCurvatures CurvTriMesh::GetPrincipalCurvatures(const TriMesh::VertexHandle& vh)
-{
-	PrincipalCurvatures principal;
-	float h = this->property(m_Mean, vh).length() * 0.5f;
-	float k = this->property(m_Gaussain, vh);
-	float delta = sqrt(h * h - k);
-	principal.first  = h + delta;
-	principal.second = h - delta;
-	return principal;
+	this->add_property(m_Tensor);
 }
 
 bool CurvTriMesh::GenVertexBuffer(std::vector<glm::vec4>& out_buffer, unsigned long long& out_size)
@@ -61,9 +55,9 @@ void CurvTriMesh::GetCurvTriMesh(unsigned long long &verts_n, unsigned long long
 							std::vector<glm::vec4> &vertices, std::vector<glm::vec3> &normals, std::vector<glm::vec4> &colors, std::vector<GLuint> &indices,
 							std::vector<glm::vec3> &minorcurv, std::vector<glm::vec3> &majorcurv, std::vector<glm::vec3> &meancurv, std::vector<float> &gausscurv) {
 	//reset the number of colors, vertices and clear the vertices array
-	verts_n = 0;
-	norms_n = 0;
-	colors_n = 0;
+	verts_n   = 0;
+	norms_n   = 0;
+	colors_n  = 0;
 	indices_n = 0;
 	vertices.clear();
 	normals.clear();
@@ -106,7 +100,7 @@ bool CurvTriMesh::GenVertexMajorDirectionBuffer(std::vector<glm::vec3>& out_buff
 	if (!m_Computed) { return false; }
 	for (CurvTriMesh::VertexIter v_it = vertices_begin(); v_it != vertices_end(); ++v_it)
 	{
-		OpenMesh::Vec3f major(1.f, 0.f, 0.f); //= GetCurvatureDirection(v_it).first;
+		OpenMesh::Vec3f major = GetCurvatureDirection(v_it).first;
 		out_buffer.push_back(glm::vec3(major[0], major[1], major[2]));
 	}
 	return true;
@@ -118,7 +112,7 @@ bool CurvTriMesh::GenVertexMinorDirectionBuffer(std::vector<glm::vec3>& out_buff
 	if (!m_Computed) { return false; }
 	for (CurvTriMesh::VertexIter v_it = vertices_begin(); v_it != vertices_end(); ++v_it)
 	{
-		OpenMesh::Vec3f minor(0.f, 1.f, 0.f); //= GetCurvatureDirection(v_it).second;
+		OpenMesh::Vec3f minor = GetCurvatureDirection(v_it).second;
 		out_buffer.push_back(glm::vec3(minor[0], minor[1], minor[2]));
 	}
 	return true;
@@ -129,7 +123,7 @@ bool CurvTriMesh::GenVertexMeanDirectionBuffer(std::vector<glm::vec3>& out_buffe
 	if (!m_Computed) { return false; }
 	for (CurvTriMesh::VertexIter v_it = vertices_begin(); v_it != vertices_end(); ++v_it)
 	{
-		OpenMesh::Vec3f mean(0.f, 0.f, 1.f); // = GetMean(v_it);
+		OpenMesh::Vec3f mean = GetMeanCurvatureNormal(v_it);
 		out_buffer.push_back(glm::vec3(mean[0], mean[1], mean[2]));
 	}
 	return true;
@@ -140,7 +134,7 @@ bool CurvTriMesh::GenVertexGaussDirectionBuffer(std::vector<float>& out_buffer)
 	if (!m_Computed) { return false; }
 	for (CurvTriMesh::VertexIter v_it = vertices_begin(); v_it != vertices_end(); ++v_it)
 	{
-		float gaussCurv = GetGaussian(v_it);
+		float gaussCurv = GetGaussainCurvature(v_it);
 		out_buffer.push_back(gaussCurv);
 	}
 	return true;

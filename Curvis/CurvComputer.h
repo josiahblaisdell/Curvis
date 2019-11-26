@@ -15,6 +15,10 @@ private:
 	 bool CalaMeanCurvature(CurvTriMesh* mesh);
 	 bool CalaCurvatureDirection(CurvTriMesh* mesh);
 
+	 bool SmoothGaussian(CurvTriMesh* mesh);
+	 bool SmoothMeanNormal(CurvTriMesh* mesh);
+	 bool SmoothCurvatureDirection(CurvTriMesh* mesh);
+
 	 float Heron(TriMesh::Point& p0, TriMesh::Point& p1, TriMesh::Point& p2);
 	 OpenMesh::Vec3f FaceNormal(TriMesh::Point& p0, TriMesh::Point& p1, TriMesh::Point& p2);
 
