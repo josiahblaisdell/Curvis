@@ -1,7 +1,8 @@
 #include "visObject.h"
 Logger *VisObject::_log = new Logger("Curvis.log");
 PolyMesh VisObject::polymesh;
-CurvTriMesh VisObject::trimesh;
+CurvTriMesh VisObject::curvtrimesh;
+
 VisObject::VisObject()
 {
 }

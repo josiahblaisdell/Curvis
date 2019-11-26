@@ -308,7 +308,7 @@ float CurvComputer::Heron(CurvTriMesh::Point& p0, CurvTriMesh::Point& p1, CurvTr
 OpenMesh::Vec3f CurvComputer::FaceNormal(CurvTriMesh::Point& p0, CurvTriMesh::Point& p1, CurvTriMesh::Point& p2)
 {
 	OpenMesh::Vec3f v1 = p1 - p0;
-	OpenMesh::Vec3f v2 = p2 - p1;
+	OpenMesh::Vec3f v2 = p2 - p0;
 	OpenMesh::Vec3f norm = OpenMesh::cross(v1, v2);
 	return norm.normalized();
 }

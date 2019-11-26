@@ -18,7 +18,7 @@ public:
 	static void initVisObject();
 	static Logger* getLog();
 	static PolyMesh polymesh;
-	static CurvTriMesh trimesh;
+	static CurvTriMesh curvtrimesh;
 	VisObject();
 	~VisObject();
 private:

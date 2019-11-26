@@ -56,18 +56,11 @@ protected:
 	//Draw the scene (glDrawElements(...))
 	virtual void OnUpdate() override;
 
-	//Get the points in PolyMesh and store in vertices[]
-	//Get the normals in PolyMesh and store in normals[]
-	//Create the colors for the trimesh
-	void GetPolyMesh();
-
-	//Get the points in trimesh and store in vertices[]
-	//Get the normals in trimesh and store in normals[]
-	//Create the colors for the trimesh
-	void GetTriMesh();
-
 	//Initialize the VAO with the vertices, normals, colors and index buffer. 
 	bool SetupVertexArrayObject();
+
+	//Get the vertices, normals, colors, indices, curvatures for the mesh
+	bool SetupCurvTriMesh();
 
 	//destructor code
 	virtual void cleanup() override;
@@ -90,6 +83,14 @@ protected:
 	std::vector<glm::vec4> colors;
 	//Array of indices into vertices and colors to create the mesh.
 	std::vector<GLuint> indices;
+	//Array of minorcurvature for vertices in mesh
+	std::vector<glm::vec3> minorcurv;
+	//Array of major curvature for vertices in mesh
+	std::vector<glm::vec3> majorcurv;
+	//Array of mean curvature for vertices in mesh
+	std::vector<glm::vec3> meancurv;
+	//Array of mean curvature for vertices in mesh
+	std::vector<float> gausscurv;
 
 	glm::mat4 m_proj_view;
 	GLuint m_proj_view_id;
@@ -101,13 +102,21 @@ protected:
 	unsigned long long colors_n;
 	//number of indices
 	unsigned long long indices_n;
-	//store size of GLfloat*num_elements_in_vector*num_vectors
+	//store size in bytes of GLfloat*num_elements_in_vector*num_vectors
 	GLuint vsize;
-	//store size of GLfloat*num_elements_in_vector*num_vectors
+	//store size in bytes of GLfloat*num_elements_in_vector*num_vectors
 	GLuint nsize;
-	//store size of GLfloat*num_elements_in_vector*num_vectors
-	GLuint csize;
-	//store size of GLfloat*num_elements_in_vector*num_vectors
+	//store size of in bytes GLfloat*num_elements_in_vector*num_vectors
+	GLuint colsize;
+	//store size of in bytes GLfloat*num_elements_in_vector*num_vectors
+	GLuint mincsize;
+	//store size of in bytes GLfloat*num_elements_in_vector*num_vectors
+	GLuint majcsize;
+	//store size of in bytes GLfloat*num_elements_in_vector*num_vectors
+	GLuint meancsize;
+	//store size of in bytes GLfloat*num_elements_in_vector*num_vectors
+	GLuint gausscsize;
+	//store size in bytes of GLfloat*num_elements_in_vector*num_vectors
 	GLuint isize;
 
 
@@ -120,4 +129,5 @@ private:
 public slots:
 	void fragSuccess();
 	void vertSuccess();
+	void updateslot();
 };

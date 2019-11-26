@@ -1,6 +1,7 @@
 #pragma once
 #include "typdef.h"
 #include <glm\glm.hpp>
+#include "glew.h"
 #include <vector>
 
 class CurvTriMesh: public TriMesh
@@ -41,7 +42,7 @@ public:
 
 	inline float GetMixedArea(const TriMesh::VertexHandle& vh) { return this->property(m_MixedArea, vh); }
 
-	inline float GetGaussain(const TriMesh::VertexHandle& vh) { return this->property(m_Gaussain, vh); }
+	inline float GetGaussian(const TriMesh::VertexHandle& vh) { return this->property(m_Gaussain, vh); }
 
 	inline OpenMesh::Vec3f GetMean(const TriMesh::VertexHandle& vh) { return this->property(m_Mean, vh); }
 
@@ -50,13 +51,31 @@ public:
 	inline PrincipalCurvatures  GetPrincipalCurvatures(const TriMesh::VertexHandle& vh);
 public:
 
-	bool GenVertexBuffer(float* out_buffer, int* out_size);
+	bool GenVertexBuffer(std::vector<glm::vec4>& out_buffer, unsigned long long& out_size);
 
-	bool GenVertexNormalBuffer(float* out_buffer, int* out_size);
+	bool GenVertexNormalBuffer(std::vector<glm::vec3>& out_buffer, unsigned long long& out_size);
 
-	bool GenVertexNormalBuffer(std::vector<glm::vec3>* out_buffer, unsigned long long * out_size);
+	bool GenVertexMajorDirectionBuffer(std::vector<glm::vec3>& out_buffer);
 
-	bool GenVertexMajorDirectionBuffer(float* out_buffer, int* out_size);
+	bool GenVertexMinorDirectionBuffer(std::vector<glm::vec3>& out_buffer);
 
-	bool GenVertexMinorDirectionBuffer(float* out_buffer, int* out_size);
+	bool GenVertexMeanDirectionBuffer(std::vector<glm::vec3>& out_buffer);
+
+	bool GenVertexGaussDirectionBuffer(std::vector<float>& out_buffer);
+
+	//verts_n: number of vertices in mesh
+	//norms_n: number of normals in mesh
+	//colors_n: number of normals in mesh
+	//indices_n: number of indices in the mesh
+	//vertices: the vector that stores the vertices in the mesh
+	//normals: the vector that stores the nomrals in the mesh.
+	//colors: the vector that stores the colors in the mesh
+	//indices: the vector that stores the indices into the vertex array for the mesh
+	//minorcurv: vector of minor curvature for each vertex
+	//majorcurv: vector of major curvature for each vertex
+	//meancurv: vector of mean curvature for each vertex
+	//Create the colors for the curvtrimesh
+	void GetCurvTriMesh(unsigned long long & verts_n, unsigned long long & norms_n, unsigned long long & colors_n, unsigned long long & indices_n, 
+						std::vector<glm::vec4>& vertices, std::vector<glm::vec3>& normals, std::vector<glm::vec4>& colors, std::vector<GLuint>& indices, 
+						std::vector<glm::vec3>& minorcurv, std::vector<glm::vec3>& majorcurv, std::vector<glm::vec3>& meancurv, std::vector<float>& gausscurv);
 };
