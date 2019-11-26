@@ -13,16 +13,13 @@ HatchWidget::HatchWidget(QWidget *parent)
 	norms_n = 0;
 	colors_n = 0;
 	indices_n = 0;
-	vaoObject = nullptr;
-	eboObject = nullptr;
-	vboObject = nullptr;
 	isTriMesh = false;
+	isReady = false;
 
 }
 
 void HatchWidget::fragSuccess() { _fragSuccess = true; }
 void HatchWidget::vertSuccess() { _vertSuccess = true; }
-QOpenGLContext * HatchWidget::getContext(){ return _context; }
 bool HatchWidget::getCompileStatus(GLenum shadertype)
 {
 	switch (shadertype)
@@ -38,9 +35,6 @@ void HatchWidget::cleanup()
 	if (_program == nullptr)
 		return;
 	makeCurrent();
-	vboObject->destroy();
-	eboObject->destroy();
-	vaoObject->destroy();
 	delete _program;
 	_program = 0;
 	doneCurrent();
@@ -53,36 +47,28 @@ glm::vec3 HatchWidget::CalcFaceNormal(SimpleTriFace face) {
 	return glm::vec3(pN[0], pN[1], pN[2]);
 }
 
-void HatchWidget::setupVertexAttribs()
-{
-	qDebug() << vboObject->bind();
-	context()->functions()->glEnableVertexAttribArray(0);
-	context()->functions()->glEnableVertexAttribArray(1);
-	context()->functions()->glEnableVertexAttribArray(2);
-	context()->functions()->glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, NULL);
-	//offset for normals is 4*pts.size() (size of vertices array)
-	context()->functions()->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)(sizeof(GLfloat)*4* verts_n));
-	//offset for colors is 4*pts.size() (size of vertices array) + 3*pts.size() (size of normals array)
-	context()->functions()->glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)(sizeof(GLfloat) *(4*verts_n + 3*norms_n)));
-	vboObject->release();
-}
-
 void HatchWidget::OnUpdate() {
-	context()->functions()->glClearColor(1, 1, 1, _isTransparent ? 0 : 1);
-	context()->functions()->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	context()->functions()->glEnable(GL_DEPTH_TEST);
-	if (_dataShader != NULL) {
-		vaoObject->bind();
+	_f->glClearColor(1, 1, 1, _isTransparent ? 0 : 1);
+	_f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	_f->glEnable(GL_DEPTH_TEST);
+	_context->makeCurrent(_surface);
+	QMatrix3x3 NormalMatrix = (m_world*m_scale).normalMatrix();
+	if (isReady) {
 		_dataShader->Use();
+		_dataShader->CheckGlErrors("Update() (Use Shader)");
+		_ef->glBindVertexArray(m_VAO);
+		_dataShader->CheckGlErrors("Update() (Use Vertex Array Obj)");
 		_dataShader->SetUniform("uProjection", m_proj);
 		_dataShader->SetUniform("uModelMatrix", m_world*m_scale);
 		_dataShader->SetUniform("uViewMatrix", m_camera);
-		//_dataShader->SetUniform("uEyePos", glm::vec3(0.0,0.0,0.0));
+		_dataShader->SetUniform("uNormalMatrix", NormalMatrix.data());
+		_dataShader->CheckGlErrors("Update() (Setting Uniforms)");
 		if (isTriMesh) {
-			context()->extraFunctions()->glDrawElements(GL_TRIANGLES, isize-1, GL_UNSIGNED_INT, (GLvoid*)0);
+			context()->extraFunctions()->glDrawElements(GL_TRIANGLES, indices_n, GL_UNSIGNED_INT, (GLvoid*)0);
+			_dataShader->CheckGlErrors("Update() (glDrawElements())");
 		}
 		//else context()->extraFunctions()->glDrawElements(GL_QUADS, isize, GL_UNSIGNED_INT, (GLvoid*)0);
-		_dataShader->CheckGlErrors("Update()");
+		
 	}
 }
 
@@ -155,13 +141,9 @@ void HatchWidget::GetTriMesh() {
 	normals.clear();
 	colors.clear();
 	indices.clear();
+	CurvComputer c;
+	c.Execute(&trimesh);
 	//get the face & vertex normals
-	trimesh.request_face_normals();
-	trimesh.update_face_normals();
-	trimesh.request_vertex_normals();
-	trimesh.update_vertex_normals();
-	//trimesh.request_halfedge_normals();
-	//trimesh.request_vertex_normals();
 	if (trimesh.has_vertex_normals()) {
 		int x = 0;
 	}
@@ -171,34 +153,16 @@ void HatchWidget::GetTriMesh() {
 	TriMesh::FaceIter f_it, f_end(trimesh.faces_end());
 	TriMesh::FaceVertexIter fv_it, fv_end;
 	TriMesh::VertexIter v_it, v_end(trimesh.vertices_end());
-	//for (f_it = trimesh.faces_begin(); f_it != f_end; ++f_it) {
-	//	fv_it = trimesh.fv_begin(*f_it);
-	//	fv_end = trimesh.fv_end(*f_it);
-	//	TriMesh::VertexHandle handles[3];
-	//	int k = 0;
-	//	for (fv_it = trimesh.fv_begin(*f_it); fv_it != fv_end; ++fv_it) {
-	//		handles[k] = trimesh.vertex_handle(fv_it->idx());
-	//		k++;
-	//	}
-
-	//	SimpleTriFace f(handles, trimesh.face_handle(f_it->idx()));
-	//	glm::vec3 normal = CalcFaceNormal(f);
-	//	OpenMesh::Vec3f n(normal.x, normal.y, normal.z);
-	//	trimesh.set_normal(*f_it, n);
-	//}
 	//create the vertices array
 	for (v_it = trimesh.vertices_begin(); v_it != v_end; ++v_it) {
 		GLfloat x = trimesh.point(v_it.handle())[0];
 		GLfloat y = trimesh.point(v_it.handle())[1];
 		GLfloat z = trimesh.point(v_it.handle())[2];
 		vertices.push_back(glm::vec4(x, y, z, 1.f));
-		TriMesh::Normal n(0, 0, 0);
-		n = trimesh.normal(v_it.handle());
-		n = n.normalize();
-		normals.push_back(glm::vec3(n[0], n[1], n[2]));
 		verts_n++;
-		norms_n++;
 	}
+	//create the normals array
+	trimesh.GenVertexNormalBuffer(&normals, &norms_n);
 	//indices for vertices are given by iterating over faces.
 	for (f_it = trimesh.faces_begin(); f_it != f_end; ++f_it) {
 		TriMesh::FaceVertexCCWIter fv_ccw, fv_ccwend = trimesh.fv_ccwend(*f_it);
@@ -228,97 +192,78 @@ void HatchWidget::GetTriMesh() {
 
 //default shape is a cube.
 void HatchWidget::OnInit() {
-	PolyMesh::VertexHandle vhandle[8];
-	std::vector<SimplePolyFace>  face_vhandles;
-	vhandle[0] = polymesh.add_vertex(PolyMesh::Point(-1, -1, 1));
-	vhandle[1] = polymesh.add_vertex(PolyMesh::Point(1, -1, 1));
-	vhandle[2] = polymesh.add_vertex(PolyMesh::Point(1, 1, 1));
-	vhandle[3] = polymesh.add_vertex(PolyMesh::Point(-1, 1, 1));
-	vhandle[4] = polymesh.add_vertex(PolyMesh::Point(-1, -1, -1));
-	vhandle[5] = polymesh.add_vertex(PolyMesh::Point(1, -1, -1));
-	vhandle[6] = polymesh.add_vertex(PolyMesh::Point(1, 1, -1));
-	vhandle[7] = polymesh.add_vertex(PolyMesh::Point(-1, 1, -1));
-
-	face_vhandles.clear();
-	//each element of face_vhandles is an array of vertex handles for a face.
-	SimplePolyFace face1(vhandle[0], vhandle[1], vhandle[2], vhandle[3]);
-	face_vhandles.push_back(face1);
-	polymesh.add_face(vhandle[0], vhandle[1], vhandle[2], vhandle[3]);
-	SimplePolyFace face2( vhandle[7], vhandle[6], vhandle[5], vhandle[4] );
-	face_vhandles.push_back(face2);
-	polymesh.add_face(vhandle[7], vhandle[6], vhandle[5], vhandle[4]);
-	SimplePolyFace face3(vhandle[1], vhandle[0], vhandle[4], vhandle[5]);
-	face_vhandles.push_back(face3);
-	polymesh.add_face(vhandle[1], vhandle[0], vhandle[4], vhandle[5]);
-	SimplePolyFace face4(vhandle[2], vhandle[1], vhandle[5], vhandle[6]);
-	face_vhandles.push_back(face4);
-	polymesh.add_face(vhandle[2], vhandle[1], vhandle[5], vhandle[6]);
-	SimplePolyFace face5(vhandle[3], vhandle[2], vhandle[6], vhandle[7] );
-	face_vhandles.push_back(face5);
-	polymesh.add_face(vhandle[3], vhandle[2], vhandle[6], vhandle[7]);
-	SimplePolyFace face6(vhandle[0], vhandle[3], vhandle[7], vhandle[4] );
-	face_vhandles.push_back(face6);
-	polymesh.add_face(vhandle[0], vhandle[3], vhandle[7], vhandle[4]);
-	//get vertices, normals, and indices
-	GetPolyMesh();
+	context()->functions()->initializeOpenGLFunctions();
 	_context = context();
-	SetupVertexArrayObject();
+	_f = _context->functions();
+	_ef = _context->extraFunctions();
+	_surface = _context->surface();
 	// Camera never changes in this example.
 	m_camera.setToIdentity();
 	m_camera.translate(_m_camera_position.x(), _m_camera_position.y(), _m_camera_position.z());
-	
 }
 
 bool HatchWidget::SetupVertexArrayObject() {
+	_context->makeCurrent(_surface);
+	//Create the vertex array & enable attributes for color, normal and vertex
+	//layout(location = 0) in vec4 inPosition;
+	//layout(location = 1) in vec3 inNormal;
+	//layout(location = 2) in vec4 inColor;
+	//-----------------------------------------------------
+	_ef->glGenVertexArrays(1, &m_VAO);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create VAO)");
+	_ef->glBindVertexArray(m_VAO);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (VAO Bind 1)");
+	_ef->glEnableVertexAttribArray(0);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array 0)");
+	_ef->glEnableVertexAttribArray(1);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array 1)");
+	_ef->glEnableVertexAttribArray(2);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array 2)");
+	//-----------------------------------------------------
 
-	if (vaoObject == nullptr) {
+	//Create & Setup the Vertex Buffer that stores normals, colors and vertices
+	//-----------------------------------------------------
+	_ef->glGenBuffers(1, &m_VBO);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create VBO)");
+	_ef->glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (VBO Bind)");
 
-		connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &GLSLWidget::cleanup);
-		initializeOpenGLFunctions();
-		vaoObject = new QOpenGLVertexArrayObject();
-		eboObject = new QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
-		vboObject = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+	//write data to GPU
+	_ef->glBufferData(GL_ARRAY_BUFFER, vsize + nsize + csize, (GLvoid*)0, GL_STATIC_DRAW);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create Buffer Data)");
+	_ef->glBufferSubData(GL_ARRAY_BUFFER, 0, vsize, &vertices[0]);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Vertices)");
+	_ef->glBufferSubData(GL_ARRAY_BUFFER, vsize, nsize, &normals[0]);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Normals)");
+	_ef->glBufferSubData(GL_ARRAY_BUFFER, vsize + nsize, csize, &colors[0]);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Colors)");
 
-		//Create the vertex array object to store state of vbo.
-		vaoObject->create();
-		//Create the vertex buffer
-		vboObject->create();
-		//create the index buffer
-		eboObject->create();
-	}
-	//bind the vertex array
-	vaoObject->bind();
+	//Configure where in memory the attributes are located (last item is offset, second to last is stride)
+	//       VERTICES                                 NORMALS                             COLORS
+	//[v11v12v13v14v21v22v23v24..vi1vi2vi3] [n11n12n13n21n22n23...ni1ni2ni3] [c11c12c13c14c21c22c23c24...ci1ci2ci3ci4]
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (VAO Bind 2)");
+	_ef->glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer 0)");
+	_ef->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)vsize);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer 1)");
+	_ef->glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)(vsize + nsize));
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer 2)");
+	//-----------------------------------------------------
 
-	//bind the vertex buffer to the current vertex array
+	//Create & Setup the Vertex Buffer that stores normals, colors and vertices
+	//-----------------------------------------------------
+	_ef->glGenBuffers(1, &m_EBO);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create EBO)");
+	_ef->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Bind EBO)");
+	_ef->glBufferData(GL_ELEMENT_ARRAY_BUFFER, isize, &indices[0], GL_STATIC_DRAW);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write EBO)");
+	//-----------------------------------------------------
 
-	vboObject->bind();
-	vboObject->allocate(0, sizeof(GLfloat)*(vsize + nsize + csize));
-	vboObject->setUsagePattern(QOpenGLBuffer::StaticDraw);
+	//unbind the vertex array
+	_ef->glBindVertexArray(0);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Unbind VAO)");
 
-	//write vertex data to graphics card
-	vboObject->write(0, vertices.data(), vsize);
-	//write normals data to graphics cards
-	vboObject->write(vsize, normals.data(), nsize);
-	//write colors data to graphics card.
-	vboObject->write(vsize + nsize, colors.data(), csize);
-
-
-	qDebug() << eboObject->bind();
-	eboObject->allocate(indices.data(), isize);
-	eboObject->setUsagePattern(QOpenGLBuffer::StaticDraw);
-
-	qDebug() << vboObject->bind();
-	context()->functions()->glEnableVertexAttribArray(0);
-	context()->functions()->glEnableVertexAttribArray(1);
-	context()->functions()->glEnableVertexAttribArray(2);
-	context()->functions()->glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, NULL);
-	//offset for normals is 4*pts.size() (size of vertices array)
-	context()->functions()->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)(vsize));
-	//offset for colors is 4*pts.size() (size of vertices array) + 3*pts.size() (size of normals array)
-	context()->functions()->glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)(vsize + nsize));
-	vboObject->release();
-	eboObject->release();
-	vaoObject->release();
 	return true;
 }
 

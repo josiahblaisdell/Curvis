@@ -54,7 +54,7 @@ public:
 	void Use();
 	void UseFixedFunction();
 	GLuint getProgramID();
-	GLSLShader(std::vector<std::string> filePaths, std::vector<std::string>*  glslUniforms, std::vector<std::string>* glslAttributes, QOpenGLContext *c = QOpenGLContext::currentContext());
+	GLSLShader(std::vector<std::string> filePaths, std::vector<std::string>*  glslUniforms, std::vector<std::string>* glslAttributes, QOpenGLContext *c, QSurface* s);
 	bool setupUniforms();
 	bool setupAttributes();
 	~GLSLShader();
@@ -76,7 +76,7 @@ protected:
 	//context that is used by this shader.
 	QOpenGLContext* _context;
 	//if the constructor is not passed a context create my own (to test compilation presumably)
-	QOffscreenSurface *_surface;
+	QSurface *_surface;
 	//if the constructor is not passed a context create my own QOpenGLFunctions instance (to test compilation presumably)
 	QOpenGLFunctions *_qOpenGLFunctions;
 	//this has some functions like glparameteri that are needed for tessellation shaders.

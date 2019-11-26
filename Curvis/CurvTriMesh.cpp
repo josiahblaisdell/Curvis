@@ -68,6 +68,27 @@ bool CurvTriMesh::GenVertexNormalBuffer(float* out_buffer, int* out_size)
 	return true;
 }
 
+bool CurvTriMesh::GenVertexNormalBuffer(std::vector<glm::vec3>* out_buffer, unsigned long long* out_size)
+{
+	if (!m_Computed) { return false; }
+	int size = n_vertices();
+	//out_buffer = new float[size];
+	int i = 0;
+	for (CurvTriMesh::VertexIter v_it = vertices_begin(); v_it != vertices_end(); ++v_it)
+	{
+		OpenMesh::Vec3f norm = normal(v_it);
+		//out_buffer[i * 3 + 0] = norm[0];
+		//out_buffer[i * 3 + 1] = norm[1];
+		//out_buffer[i * 3 + 2] = norm[2];
+		//out_buffer->push_back(glm::vec3(norm[0], norm[1], norm[2]));
+		out_buffer->push_back(glm::vec3(1.0f, 0.0f, 0.0f));
+		i++;
+	}
+	*out_size = size;
+	return true;
+}
+
+
 bool CurvTriMesh::GenVertexMajorDirectionBuffer(float* out_buffer, int* out_size)
 {
 	return true;
