@@ -56,8 +56,11 @@ void HatchWidget::OnUpdate() {
 	QMatrix3x3 NormalMatrix = (m_camera*m_world*m_scale).normalMatrix();
 
 	if (isReady) {
-		_ef->glBindFramebuffer(GL_FRAMEBUFFER, m_FBO_0);
-		_ef->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		/*
+		* Pass 0: Shading
+		*/
+		_ef->glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[0]);
+		_ef->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		_ef->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		_shadingShader->CheckGlErrors("Update() (Bind Frame Buffer)");
 
@@ -74,19 +77,50 @@ void HatchWidget::OnUpdate() {
 		_shadingShader->CheckGlErrors("Update() (Setting Uniforms)");		
 		_ef->glDrawElements(GL_TRIANGLES, indices_n, GL_UNSIGNED_INT, (GLvoid*)0);
 		_shadingShader->CheckGlErrors("Update() (glDrawElements())");
+		/*
+		* Pass 2: Curvature Directions
+		*/
+		_ef->glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[1]);
+		_ef->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		_ef->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		_directionShader->CheckGlErrors("Update() (Bind Frame Buffer)");
+
+		_directionShader->Use();
+		_directionShader->CheckGlErrors("Update() (Use Shader)");
+
+		_ef->glBindVertexArray(m_VAO);
+
+		_directionShader->CheckGlErrors("Update() (Use Vertex Array Obj)");
+		_directionShader->SetUniform("uProjection", m_proj);
+		_directionShader->SetUniform("uModelMatrix", m_world * m_scale);
+		_directionShader->SetUniform("uViewMatrix", m_camera);
+		_directionShader->SetUniform("uNormalMatrix", NormalMatrix);
+		_directionShader->CheckGlErrors("Update() (Setting Uniforms)");
+		_ef->glDrawElements(GL_TRIANGLES, indices_n, GL_UNSIGNED_INT, (GLvoid*)0);
+		_directionShader->CheckGlErrors("Update() (glDrawElements())");
 		_ef->glBindVertexArray(0);
+		/*
+		* Final Pass: Rendering Images & LIC
+		*/
+		_ef->glEnable(GL_BLEND);
 		_ef->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		_ef->glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-		// clear all relevant buffers
-		_ef->glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // set clear color to white (not really necessery actually, since we won't be able to see behind the quad anyways)
+		_ef->glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessery actually, since we won't be able to see behind the quad anyways)
 		_ef->glClear(GL_COLOR_BUFFER_BIT);
 		_screenShader->Use();
 		_ef->glBindVertexArray(m_quad_VAO);
 		_shadingShader->CheckGlErrors("Update() (Bind quad VAO)");
-		_ef->glBindTexture(GL_TEXTURE_2D, m_Tex_0);
+		_ef->glActiveTexture(GL_TEXTURE0);
+		_ef->glBindTexture(GL_TEXTURE_2D, m_FBOTex[0]);
+		_ef->glActiveTexture(GL_TEXTURE1);
+		_ef->glBindTexture(GL_TEXTURE_2D, m_FBOTex[1]);
+		_screenShader->SetUniform1i("uShading", 0);
+		_screenShader->SetUniform1i("uField",   1);
+
 		_shadingShader->CheckGlErrors("Update() (Bind texture)");
 		_ef->glDrawElements(GL_QUADS, 4,GL_UNSIGNED_INT,(GLvoid*)0);
 		_shadingShader->CheckGlErrors("Update() (Draw Elements texture)");
+		_ef->glDisable(GL_BLEND);
 	}
 }
 
@@ -99,14 +133,13 @@ bool HatchWidget::SetupCurvTriMesh() {
 	static_assert(sizeof(glm::vec4) == sizeof(GLfloat) * 4, "Platform doesn't support vec4 this directly.");
 	vsize = sizeof(GLfloat) * 4 * verts_n;
 	nsize = sizeof(GLfloat) * 3 * norms_n;
-	colsize = sizeof(GLfloat) * 4 * colors_n;
+	colsize = sizeof(GLfloat)  * 4 * colors_n;
 	mincsize = sizeof(GLfloat) * 3 * norms_n;
 	majcsize = sizeof(GLfloat) * 3 * norms_n;
 	meancsize = sizeof(GLfloat) * 3 * norms_n;
 	gausscsize = sizeof(GLfloat) * 1 * norms_n;
 	isize = sizeof(GLuint)*indices_n;
 	return true;
-
 }
 
 //default shape is a cube.
@@ -125,42 +158,50 @@ void HatchWidget::OnInit() {
 
 bool HatchWidget::SetupFrameBufferObjects() {
 	_context->makeCurrent(_surface);
-
-	_ef->glGenFramebuffers(1, &m_FBO_0);
-	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (genframebuffer)");
-	_ef->glGenTextures(1, &m_Tex_0);
-	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (gentextures)");
-	_ef->glGenRenderbuffers(1, &m_RBO_0);
-	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (genrenderbuffers)");
-
-	_ef->glBindFramebuffer(GL_FRAMEBUFFER, m_FBO_0);
-	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindframebuffer)");
-	_ef->glBindTexture(GL_TEXTURE_2D, m_Tex_0);
-	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindtexture)");
 	int width  = this->width();
 	int height = this->height();
-	_ef->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glteximage2d)");
-	_ef->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (gltexparameteri)");
-	_ef->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (gltexparameteri)");
-	_ef->glBindTexture(GL_TEXTURE_2D, 0);
-	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindtexture2)");
-	_ef->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_Tex_0, 0);
-	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glframebuffertexture2d)");
-	_ef->glBindRenderbuffer(GL_RENDERBUFFER, m_RBO_0);
-	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindrenderbuffer)");
-	_ef->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glrenderbufferstorage)");
-	_ef->glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindrenderbuffer 0)");
-	_ef->glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RBO_0);
-	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glFrameBufferRenderBuffer)");
-	if (_ef->glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-		return false;
+
+	for (int i = 0; i < FBO_SIZE; i++)
+	{
+		_ef->glGenFramebuffers(1, &m_FBO[i]);
+		_screenShader->CheckGlErrors("SetupFrameBufferObjects() (genframebuffer)");
+		_ef->glGenTextures(1, &m_FBOTex[i]);
+		_screenShader->CheckGlErrors("SetupFrameBufferObjects() (gentextures)");
+		_ef->glGenRenderbuffers(1, &m_RBO[i]);
+		_screenShader->CheckGlErrors("SetupFrameBufferObjects() (genrenderbuffers)");
+
+		_ef->glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[i]);
+		_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindframebuffer)");
+		_ef->glBindTexture(GL_TEXTURE_2D, m_FBOTex[i]);
+		_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindtexture)");
+
+		_ef->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glteximage2d)");
+		_ef->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		_screenShader->CheckGlErrors("SetupFrameBufferObjects() (gltexparameteri)");
+		_ef->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		_screenShader->CheckGlErrors("SetupFrameBufferObjects() (gltexparameteri)");
+		_ef->glBindTexture(GL_TEXTURE_2D, 0);
+		_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindtexture2)");
+
+		_ef->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_FBOTex[i], 0);
+		_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glframebuffertexture2d)");
+		_ef->glBindRenderbuffer(GL_RENDERBUFFER, m_RBO[i]);
+		_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindrenderbuffer)");
+		_ef->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+		_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glrenderbufferstorage)");
+		_ef->glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindrenderbuffer 0)");
+		_ef->glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RBO[i]);
+		_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glFrameBufferRenderBuffer)");
+
+		if (_ef->glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) 
+		{
+			std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+			return false;
+		}
 	}
+	
 
 	_ef->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

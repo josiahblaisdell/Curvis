@@ -413,6 +413,19 @@ void GLSLShader::SetUniform(char * name, glm::vec4 & v)
 	CheckGlErrors("SetUniform(Vec4)");
 }
 
+void GLSLShader::SetUniform1i(char* name, int index)
+{
+	GLint location = _qOpenGLFunctions->glGetUniformLocation(_program, name);
+
+	if (location < 0)
+		getLog()->Write(DEBUG, "SetUniform(vec3)", "Cannot find Uniform variable " + std::string(name));
+	else 
+	{
+		_qOpenGLFunctions->glUniform1i(location,index);
+	}
+	CheckGlErrors("SetUniform(vec3)");
+}
+
 void GLSLShader::SetUniform(char * name, glm::vec3 & v)
 {
 	GLint location = _qOpenGLFunctions->glGetUniformLocation(_program, name);

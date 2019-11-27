@@ -10,6 +10,8 @@
 #include "GLSLWidget.h"
 #include "CurvComputer.h"
 
+#define FBO_SIZE 2
+
 struct SimplePolyFace {
 	SimplePolyFace(PolyMesh::VertexHandle p1, PolyMesh::VertexHandle p2, PolyMesh::VertexHandle p3, PolyMesh::VertexHandle p4) { v1 = p1; v2 = p2; v3 = p3; v4 = p4; }
 	SimplePolyFace(PolyMesh::VertexHandle vs[4]) { v1 = vs[0]; v2 = vs[1]; v3 = vs[2]; v4 = vs[3]; }
@@ -97,11 +99,11 @@ protected:
 
 
 	//Framebuffer 0
-	GLuint m_FBO_0;
+	GLuint m_FBO[FBO_SIZE];
 	//Texture 0
-	GLuint m_Tex_0;
+	GLuint m_FBOTex[FBO_SIZE];
 	//Renderbuffer 0
-	GLuint m_RBO_0;
+	GLuint m_RBO[FBO_SIZE];
 	//Vertex array Object ID
 	GLuint m_quad_VAO;
 	//Vertex Buffer Object ID

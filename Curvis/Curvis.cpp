@@ -16,7 +16,8 @@ void Curvis::on_btn_loadply_clicked() {
 	shaderpaths.push_back(".\\Shaders\\framebuffer0.frag");
 	_glslAttributes.push_back("inPos");
 	_glslAttributes.push_back("inTexCoords");
-	_glslUniforms.push_back("uScreenTexture");
+	_glslUniforms.push_back("uShading");
+	_glslUniforms.push_back("uShading");
 	ui.hatchWidget->_screenShader = new GLSLShader(shaderpaths, &_glslUniforms, &_glslAttributes, ui.hatchWidget->_context, ui.hatchWidget->_surface);
 
 	shaderpaths.clear();
