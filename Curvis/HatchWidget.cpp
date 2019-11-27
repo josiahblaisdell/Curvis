@@ -54,20 +54,39 @@ void HatchWidget::OnUpdate() {
 	//in order for qt to access the vao, you must set the current surface to the surface used when the vao was created.
 	_context->makeCurrent(_surface);
 	QMatrix3x3 NormalMatrix = (m_camera*m_world*m_scale).normalMatrix();
+
 	if (isReady) {
+		_ef->glBindFramebuffer(GL_FRAMEBUFFER, m_FBO_0);
+		_ef->glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		_ef->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		_dataShader->CheckGlErrors("Update() (Bind Frame Buffer)");
+
 		_dataShader->Use();
 		_dataShader->CheckGlErrors("Update() (Use Shader)");
+
 		_ef->glBindVertexArray(m_VAO);
+
 		_dataShader->CheckGlErrors("Update() (Use Vertex Array Obj)");
 		_dataShader->SetUniform("uProjection", m_proj);
 		_dataShader->SetUniform("uModelMatrix", m_world*m_scale);
 		_dataShader->SetUniform("uViewMatrix", m_camera);
 		_dataShader->SetUniform("uNormalMatrix", NormalMatrix);
-		_dataShader->CheckGlErrors("Update() (Setting Uniforms)");
-		if (isTriMesh) {
-			context()->extraFunctions()->glDrawElements(GL_TRIANGLES, indices_n, GL_UNSIGNED_INT, (GLvoid*)0);
-			_dataShader->CheckGlErrors("Update() (glDrawElements())");
-		}
+		_dataShader->CheckGlErrors("Update() (Setting Uniforms)");		
+		_ef->glDrawElements(GL_TRIANGLES, indices_n, GL_UNSIGNED_INT, (GLvoid*)0);
+		_dataShader->CheckGlErrors("Update() (glDrawElements())");
+		_ef->glBindVertexArray(0);
+		_ef->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		_ef->glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+		// clear all relevant buffers
+		_ef->glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // set clear color to white (not really necessery actually, since we won't be able to see behind the quad anyways)
+		_ef->glClear(GL_COLOR_BUFFER_BIT);
+		_screenShader->Use();
+		_ef->glBindVertexArray(m_quad_VAO);
+		_dataShader->CheckGlErrors("Update() (Bind quad VAO)");
+		_ef->glBindTexture(GL_TEXTURE_2D, m_Tex_0);
+		_dataShader->CheckGlErrors("Update() (Bind texture)");
+		_ef->glDrawElements(GL_QUADS, 4,GL_UNSIGNED_INT,(GLvoid*)0);
+		_dataShader->CheckGlErrors("Update() (Draw Elements texture)");
 	}
 }
 
@@ -97,9 +116,55 @@ void HatchWidget::OnInit() {
 	_f = _context->functions();
 	_ef = _context->extraFunctions();
 	_surface = _context->surface();
+
+
 	// Camera never changes in this example.
 	m_camera.setToIdentity();
 	m_camera.translate(_m_camera_position.x(), _m_camera_position.y(), _m_camera_position.z());
+}
+
+bool HatchWidget::SetupFrameBufferObjects() {
+	_context->makeCurrent(_surface);
+
+	_ef->glGenFramebuffers(1, &m_FBO_0);
+	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (genframebuffer)");
+	_ef->glGenTextures(1, &m_Tex_0);
+	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (gentextures)");
+	_ef->glGenRenderbuffers(1, &m_RBO_0);
+	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (genrenderbuffers)");
+
+	_ef->glBindFramebuffer(GL_FRAMEBUFFER, m_FBO_0);
+	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindframebuffer)");
+	_ef->glBindTexture(GL_TEXTURE_2D, m_Tex_0);
+	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindtexture)");
+	int width = this->parentWidget()->width();
+	int height = this->parentWidget()->height();
+	_ef->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glteximage2d)");
+	_ef->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (gltexparameteri)");
+	_ef->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (gltexparameteri)");
+	_ef->glBindTexture(GL_TEXTURE_2D, 0);
+	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindtexture2)");
+	_ef->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_Tex_0, 0);
+	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glframebuffertexture2d)");
+	_ef->glBindRenderbuffer(GL_RENDERBUFFER, m_RBO_0);
+	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindrenderbuffer)");
+	_ef->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glrenderbufferstorage)");
+	_ef->glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindrenderbuffer 0)");
+	_ef->glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RBO_0);
+	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glFrameBufferRenderBuffer)");
+	if (_ef->glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+		return false;
+	}
+
+	_ef->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	return true;
 }
 
 bool HatchWidget::SetupVertexArrayObject() {
@@ -209,6 +274,62 @@ void HatchWidget::updateMesh() {
 	//setup vao, vbo, ebo, write to gpu
 	SetupVertexArrayObject();
 
+	SetupFrameBufferObjects();
+
+	//create quad data
+	//vertices..
+	quad_verts.push_back(glm::vec4(-1.f, -1.f, 0.f, 1.0f));
+	quad_verts.push_back(glm::vec4(-1.f, 1.f, 0.f, 1.0f));
+	quad_verts.push_back(glm::vec4(1.f, 1.f, 0.f, 1.0f));
+	quad_verts.push_back(glm::vec4(1.f, -1.f, 0.f, 1.0f));
+	//quad texture coordinates
+	quad_texcoords.push_back(glm::vec2(0.f, 0.f));
+	quad_texcoords.push_back(glm::vec2(0.f, 1.f));
+	quad_texcoords.push_back(glm::vec2(1.f, 1.f));
+	quad_texcoords.push_back(glm::vec2(1.f, 0.f));
+	//quad indices...
+	quad_indices.push_back(0);
+	quad_indices.push_back(1);
+	quad_indices.push_back(2);
+	quad_indices.push_back(3);
+
+	//Create Quad for FBO
+	_ef->glGenVertexArrays(1, &m_quad_VAO);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create Quad VAO)");
+	_ef->glBindVertexArray(m_quad_VAO);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Quad VAO Bind 1)");
+	_ef->glEnableVertexAttribArray(0);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable Quad vbo attrib array position)");
+	_ef->glEnableVertexAttribArray(1);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable Quad vbo attrib array normal)");
+
+	_ef->glGenBuffers(1, &m_quad_VBO);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create Quad VBO)");
+	_ef->glBindBuffer(GL_ARRAY_BUFFER, m_quad_VBO);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Quad VBO Bind)");
+
+	_ef->glBufferData(GL_ARRAY_BUFFER, quad_verts.size() * 4 * sizeof(GLfloat) + quad_texcoords.size() * 2 * sizeof(GLfloat), (GLvoid*)0, GL_STATIC_DRAW);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Allocate Quad Buffer Data)");
+	_ef->glBufferSubData(GL_ARRAY_BUFFER, 0, quad_verts.size() * 4 * sizeof(GLfloat), &quad_verts[0]);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Quad Vertices)");
+	_ef->glBufferSubData(GL_ARRAY_BUFFER, quad_verts.size() * 4 * sizeof(GLfloat), quad_texcoords.size() * 2 * sizeof(GLfloat), &quad_texcoords[0]);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Quad TexCoords)");
+
+	_ef->glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer pos)");
+	_ef->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)(quad_verts.size() * 4 * sizeof(GLfloat)));
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer norm)");
+
+	_ef->glGenBuffers(1, &m_quad_EBO);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create Quad EBO)");
+	_ef->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_quad_EBO);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Bind Quad EBO)");
+	_ef->glBufferData(GL_ELEMENT_ARRAY_BUFFER, quad_indices.size() * sizeof(GLuint), &quad_indices[0], GL_STATIC_DRAW);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Quad EBO)");
+
+	_ef->glBindVertexArray(0);
+	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Unbind VAO)");
+	
 	// Set camera to a standard position
 	m_camera.setToIdentity();
 	m_camera.translate(_m_camera_position.x(), _m_camera_position.y(), _m_camera_position.z());
