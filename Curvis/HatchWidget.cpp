@@ -78,7 +78,7 @@ void HatchWidget::OnUpdate() {
 		_ef->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		_ef->glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 		// clear all relevant buffers
-		_ef->glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessery actually, since we won't be able to see behind the quad anyways)
+		_ef->glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // set clear color to white (not really necessery actually, since we won't be able to see behind the quad anyways)
 		_ef->glClear(GL_COLOR_BUFFER_BIT);
 		_screenShader->Use();
 		_ef->glBindVertexArray(m_quad_VAO);
