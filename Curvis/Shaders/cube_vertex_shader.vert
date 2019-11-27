@@ -24,7 +24,7 @@ out vec3  vLightPos;
 out vec4  vMVPosition;
 
 void main(){
-	vLightPos = vec3(1,1,1);
+	vLightPos = vec3(10,10,10);
 	
 	vMVPosition = uViewMatrix*uModelMatrix*inPosition;
 	gl_Position = uProjection*vMVPosition;

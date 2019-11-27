@@ -4,11 +4,11 @@
 HatchWidget::HatchWidget(QWidget *parent)
 	: GLSLWidget(parent)
 {
-	_dataShader = NULL;
+	_shadingShader = NULL;
 	_m_camera_position = { 0.0f, 0.0f, -7.0f };
 	_m_camera_up = QVector3D(0.0f, 1.0f, 0.0f);
-	connect(_dataShader, SIGNAL(GLSLShader::fragShaderCompileSuccess), this, SLOT(DataViewerWidget::fragSuccess));
-	connect(_dataShader, SIGNAL(GLSLShader::vertShaderCompileSuccess), this, SLOT(DataViewerWidget::vertSuccess));
+	connect(_shadingShader, SIGNAL(GLSLShader::fragShaderCompileSuccess), this, SLOT(DataViewerWidget::fragSuccess));
+	connect(_shadingShader, SIGNAL(GLSLShader::vertShaderCompileSuccess), this, SLOT(DataViewerWidget::vertSuccess));
 	verts_n = 0;
 	norms_n = 0;
 	colors_n = 0;
@@ -57,23 +57,23 @@ void HatchWidget::OnUpdate() {
 
 	if (isReady) {
 		_ef->glBindFramebuffer(GL_FRAMEBUFFER, m_FBO_0);
-		_ef->glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		_ef->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		_ef->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		_dataShader->CheckGlErrors("Update() (Bind Frame Buffer)");
+		_shadingShader->CheckGlErrors("Update() (Bind Frame Buffer)");
 
-		_dataShader->Use();
-		_dataShader->CheckGlErrors("Update() (Use Shader)");
+		_shadingShader->Use();
+		_shadingShader->CheckGlErrors("Update() (Use Shader)");
 
 		_ef->glBindVertexArray(m_VAO);
 
-		_dataShader->CheckGlErrors("Update() (Use Vertex Array Obj)");
-		_dataShader->SetUniform("uProjection", m_proj);
-		_dataShader->SetUniform("uModelMatrix", m_world*m_scale);
-		_dataShader->SetUniform("uViewMatrix", m_camera);
-		_dataShader->SetUniform("uNormalMatrix", NormalMatrix);
-		_dataShader->CheckGlErrors("Update() (Setting Uniforms)");		
+		_shadingShader->CheckGlErrors("Update() (Use Vertex Array Obj)");
+		_shadingShader->SetUniform("uProjection", m_proj);
+		_shadingShader->SetUniform("uModelMatrix", m_world*m_scale);
+		_shadingShader->SetUniform("uViewMatrix", m_camera);
+		_shadingShader->SetUniform("uNormalMatrix", NormalMatrix);
+		_shadingShader->CheckGlErrors("Update() (Setting Uniforms)");		
 		_ef->glDrawElements(GL_TRIANGLES, indices_n, GL_UNSIGNED_INT, (GLvoid*)0);
-		_dataShader->CheckGlErrors("Update() (glDrawElements())");
+		_shadingShader->CheckGlErrors("Update() (glDrawElements())");
 		_ef->glBindVertexArray(0);
 		_ef->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		_ef->glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
@@ -82,11 +82,11 @@ void HatchWidget::OnUpdate() {
 		_ef->glClear(GL_COLOR_BUFFER_BIT);
 		_screenShader->Use();
 		_ef->glBindVertexArray(m_quad_VAO);
-		_dataShader->CheckGlErrors("Update() (Bind quad VAO)");
+		_shadingShader->CheckGlErrors("Update() (Bind quad VAO)");
 		_ef->glBindTexture(GL_TEXTURE_2D, m_Tex_0);
-		_dataShader->CheckGlErrors("Update() (Bind texture)");
+		_shadingShader->CheckGlErrors("Update() (Bind texture)");
 		_ef->glDrawElements(GL_QUADS, 4,GL_UNSIGNED_INT,(GLvoid*)0);
-		_dataShader->CheckGlErrors("Update() (Draw Elements texture)");
+		_shadingShader->CheckGlErrors("Update() (Draw Elements texture)");
 	}
 }
 
@@ -137,8 +137,8 @@ bool HatchWidget::SetupFrameBufferObjects() {
 	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindframebuffer)");
 	_ef->glBindTexture(GL_TEXTURE_2D, m_Tex_0);
 	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindtexture)");
-	int width = this->parentWidget()->width();
-	int height = this->parentWidget()->height();
+	int width  = this->width();
+	int height = this->height();
 	_ef->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glteximage2d)");
 	_ef->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -180,89 +180,89 @@ bool HatchWidget::SetupVertexArrayObject() {
 	//layout(location = 6) in float inGaussCurvature;
 	//-------------------------------------------------------------------------------------------
 	_ef->glGenVertexArrays(1, &m_VAO);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create VAO)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Create VAO)");
 	_ef->glBindVertexArray(m_VAO);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (VAO Bind 1)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (VAO Bind 1)");
 	_ef->glEnableVertexAttribArray(0);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array position)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array position)");
 	_ef->glEnableVertexAttribArray(1);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array normal)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array normal)");
 	_ef->glEnableVertexAttribArray(2);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array color)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array color)");
 	_ef->glEnableVertexAttribArray(3);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array minor curvature)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array minor curvature)");
 	_ef->glEnableVertexAttribArray(4);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array major curvature)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array major curvature)");
 	_ef->glEnableVertexAttribArray(5);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array mean curvature)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array mean curvature)");
 	_ef->glEnableVertexAttribArray(6);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array gauss curvature)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib array gauss curvature)");
 	//-------------------------------------------------------------------------------------------
 
 	//Create & Setup the Vertex Buffer that stores normals, colors and vertices
 	//-----------------------------------------------------
 	_ef->glGenBuffers(1, &m_VBO);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create VBO)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Create VBO)");
 	_ef->glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (VBO Bind)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (VBO Bind)");
 	//-----------------------------------------------------
 
 	//write data to GPU
 	//Creating enough space for vertices, normals, colors, minorcurvature, majorcurvature, and mean curvature.
 	//-------------------------------------------------------------------------------------------
 	_ef->glBufferData(GL_ARRAY_BUFFER, vsize + nsize + colsize + mincsize + majcsize + meancsize + gausscsize, (GLvoid*)0, GL_STATIC_DRAW);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create Buffer Data)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Create Buffer Data)");
 	_ef->glBufferSubData(GL_ARRAY_BUFFER, 0, vsize, &vertices[0]);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Vertices)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Write Vertices)");
 	_ef->glBufferSubData(GL_ARRAY_BUFFER, vsize, nsize, &normals[0]);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Normals)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Write Normals)");
 	_ef->glBufferSubData(GL_ARRAY_BUFFER, vsize + nsize, colsize, &colors[0]);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Colors)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Write Colors)");
 	_ef->glBufferSubData(GL_ARRAY_BUFFER, vsize + nsize + colsize, nsize, &minorcurv[0]);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Minor Curvature)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Write Minor Curvature)");
 	_ef->glBufferSubData(GL_ARRAY_BUFFER, vsize + nsize + colsize + mincsize, nsize, &majorcurv[0]);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Major Curvature)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Write Major Curvature)");
 	_ef->glBufferSubData(GL_ARRAY_BUFFER, vsize + nsize + colsize + mincsize + majcsize, nsize, &meancurv[0]);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Mean Curvature)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Write Mean Curvature)");
 	_ef->glBufferSubData(GL_ARRAY_BUFFER, vsize + nsize + colsize + mincsize + majcsize + meancsize, gausscsize, &gausscurv[0]);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Gauss Curvature)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Write Gauss Curvature)");
 	//-------------------------------------------------------------------------------------------
 
 	//Configure where in memory the attributes are located (last item is offset, second to last is stride). Here is how this is organized in memory:
 	//          VERTICES                                 NORMALS                             COLORS						           MINOR CURVATURE			        MAJOR CURVATURE			         MEAN CURVATURE		  GAUSS CURVATURE
 	//[v11v12v13v14v21v22v23v24..vi1vi2vi3vi4][n11n12n13n21n22n23...ni1ni2ni3][c11c12c13c14c21c22c23c24...ci1ci2ci3ci4][c11c12c13c21c22c23...ci1ci2ci3] [c11c12c13c21c22c23...ci1ci2ci3] [c11c12c13c21c22c23...ci1ci2ci3]  [c1c2c3c...ci]
 	//-------------------------------------------------------------------------------------------
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (VAO Bind 2)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (VAO Bind 2)");
 	_ef->glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer pos)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer pos)");
 	_ef->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)vsize);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer norm)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer norm)");
 	_ef->glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)(vsize + nsize));
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer color)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer color)");
 	_ef->glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)(vsize + nsize + colsize));
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer minor curvature)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer minor curvature)");
 	_ef->glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)(vsize + nsize + colsize + mincsize));
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer major curvature)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer major curvature)");
 	_ef->glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)(vsize + 3*nsize + colsize + mincsize + majcsize));
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer mean curvature)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer mean curvature)");
 	_ef->glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, 1 * sizeof(GLfloat), (GLvoid*)(vsize + 4 * nsize + colsize + mincsize + majcsize + meancsize));
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer gauss curvature)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer gauss curvature)");
 	//-------------------------------------------------------------------------------------------
 
 	//Create & Setup the Vertex Buffer that stores normals, colors and vertices
 	//-------------------------------------------------------------------------------------------
 	_ef->glGenBuffers(1, &m_EBO);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create EBO)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Create EBO)");
 	_ef->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Bind EBO)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Bind EBO)");
 	_ef->glBufferData(GL_ELEMENT_ARRAY_BUFFER, isize, &indices[0], GL_STATIC_DRAW);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write EBO)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Write EBO)");
 	//-------------------------------------------------------------------------------------------
 
 	//unbind the vertex array
 	//-------------------------------------------------------------------------------------------
 	_ef->glBindVertexArray(0);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Unbind VAO)");
+	_shadingShader->CheckGlErrors("SetupVertexArrayObject() (Unbind VAO)");
 	//-------------------------------------------------------------------------------------------
 
 	return true;
@@ -295,40 +295,40 @@ void HatchWidget::updateMesh() {
 
 	//Create Quad for FBO
 	_ef->glGenVertexArrays(1, &m_quad_VAO);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create Quad VAO)");
+	_screenShader->CheckGlErrors("SetupVertexArrayObject() (Create Quad VAO)");
 	_ef->glBindVertexArray(m_quad_VAO);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Quad VAO Bind 1)");
+	_screenShader->CheckGlErrors("SetupVertexArrayObject() (Quad VAO Bind 1)");
 	_ef->glEnableVertexAttribArray(0);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable Quad vbo attrib array position)");
+	_screenShader->CheckGlErrors("SetupVertexArrayObject() (Enable Quad vbo attrib array position)");
 	_ef->glEnableVertexAttribArray(1);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable Quad vbo attrib array normal)");
+	_screenShader->CheckGlErrors("SetupVertexArrayObject() (Enable Quad vbo attrib array normal)");
 
 	_ef->glGenBuffers(1, &m_quad_VBO);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create Quad VBO)");
+	_screenShader->CheckGlErrors("SetupVertexArrayObject() (Create Quad VBO)");
 	_ef->glBindBuffer(GL_ARRAY_BUFFER, m_quad_VBO);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Quad VBO Bind)");
+	_screenShader->CheckGlErrors("SetupVertexArrayObject() (Quad VBO Bind)");
 
 	_ef->glBufferData(GL_ARRAY_BUFFER, quad_verts.size() * 4 * sizeof(GLfloat) + quad_texcoords.size() * 2 * sizeof(GLfloat), (GLvoid*)0, GL_STATIC_DRAW);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Allocate Quad Buffer Data)");
+	_screenShader->CheckGlErrors("SetupVertexArrayObject() (Allocate Quad Buffer Data)");
 	_ef->glBufferSubData(GL_ARRAY_BUFFER, 0, quad_verts.size() * 4 * sizeof(GLfloat), &quad_verts[0]);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Quad Vertices)");
+	_screenShader->CheckGlErrors("SetupVertexArrayObject() (Write Quad Vertices)");
 	_ef->glBufferSubData(GL_ARRAY_BUFFER, quad_verts.size() * 4 * sizeof(GLfloat), quad_texcoords.size() * 2 * sizeof(GLfloat), &quad_texcoords[0]);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Quad TexCoords)");
+	_screenShader->CheckGlErrors("SetupVertexArrayObject() (Write Quad TexCoords)");
 
 	_ef->glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer pos)");
+	_screenShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer pos)");
 	_ef->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)(quad_verts.size() * 4 * sizeof(GLfloat)));
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer norm)");
+	_screenShader->CheckGlErrors("SetupVertexArrayObject() (Enable vbo attrib pointer norm)");
 
 	_ef->glGenBuffers(1, &m_quad_EBO);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Create Quad EBO)");
+	_screenShader->CheckGlErrors("SetupVertexArrayObject() (Create Quad EBO)");
 	_ef->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_quad_EBO);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Bind Quad EBO)");
+	_screenShader->CheckGlErrors("SetupVertexArrayObject() (Bind Quad EBO)");
 	_ef->glBufferData(GL_ELEMENT_ARRAY_BUFFER, quad_indices.size() * sizeof(GLuint), &quad_indices[0], GL_STATIC_DRAW);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Write Quad EBO)");
+	_screenShader->CheckGlErrors("SetupVertexArrayObject() (Write Quad EBO)");
 
 	_ef->glBindVertexArray(0);
-	_dataShader->CheckGlErrors("SetupVertexArrayObject() (Unbind VAO)");
+	_screenShader->CheckGlErrors("SetupVertexArrayObject() (Unbind VAO)");
 	
 	// Set camera to a standard position
 	m_camera.setToIdentity();

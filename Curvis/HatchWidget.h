@@ -37,8 +37,9 @@ public:
 	~HatchWidget();
 
 	//This is our shader 
-	GLSLShader *_dataShader;
-	GLSLShader *_screenShader;
+	GLSLShader* _shadingShader;
+	GLSLShader* _directionShader;
+	GLSLShader* _screenShader;
 	void update();
 	bool getCompileStatus(GLenum shadertype);
 	//is the mesh made up of polygons or triangles...

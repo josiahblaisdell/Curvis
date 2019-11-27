@@ -6,8 +6,8 @@ uniform mat4 uProjection;
 uniform mat3 uNormalMatrix;
 
 uniform float   uKa = 0.;
-uniform float   uKd = .6;
-uniform float   uKs = .4;					// coefficients of each type of lighting	
+uniform float   uKd = .8;
+uniform float   uKs = .2;					// coefficients of each type of lighting	
 uniform float   uShininess = 1.0;		    // specular exponent
 
 in vec4  vColor;
@@ -27,7 +27,8 @@ float ADSLighting(vec3 vN, vec3 vL, vec3 vE, vec3 vR, vec3 vRE)
 	float ambient  = uKa;
 	float diffuse  = max(0.0, -dot(vL,vN))*uKd;
 	float specular = 0.0;
-	if(dot(vL,vE) > 0.0){
+	if(dot(vL,vE) > 0.0)
+	{
 		specular = pow(max(0.0, -dot(vE,vR) ),uShininess)*uKs;
 	}
 	return clamp(ambient+diffuse+specular,0.0,1.0);
@@ -38,9 +39,9 @@ void main()
 	// normal vector
 	vec3 fN = vNormal;
 	// vector from point to light
-	vec3 vL = normalize(vec3(vLightPos) - vMVPosition.xyz);	
+	vec3 vL = normalize(vMVPosition.xyz - vec3(vLightPos));	
 	// vector from point to eye								
-	vec3 vE = normalize(vec3( 0., 0., 0. ) - vMVPosition.xyz);	
+	vec3 vE = normalize(vMVPosition.xyz - vec3( 0., 0., 0. ));	
 	// vector from point to light reflected about normal
 	vec3 vR = normalize(reflect(vL,fN));
 	// vector from point to eye reflected about the normal;
@@ -48,8 +49,8 @@ void main()
 	// 
 	float shading = ADSLighting(fN, vL, vE, vR, vRE);
 	float depth = clamp(vDepth,-1,1)*0.5+0.5;
-	float outline = dot(vNormal, normalize(vMVPosition.xyz));
-	if(   outline > 0.5){outline = 1.0;}
+	float outline = dot(vNormal, -1*normalize(vMVPosition.xyz));
+	if(   outline > 0.3){outline = 1.0;}
 	else{ outline = 0.0; }
 	gl_FragColor = vec4(shading, depth, outline, 1);
 }
