@@ -13,36 +13,34 @@ uniform mat4 uProjection;
 uniform mat3 uNormalMatrix;
 
 out vec4  vColor;
-out vec3  vPos;
-out vec3  vMPos;
-out vec3  vMVPos;
-out vec3  vMVPPos;
 out vec3  vNormal;
-out vec3  vLightPos;
 out vec3  vMinorCurvature;
 out vec3  vMajorCurvature;
 out vec3  vMeanCurvature;
 out float vGaussCurvature;
+
 out float vDepth;
-out float vNormalLightAngle;
+out vec3  vLightPos;
+out vec4  vMVPosition;
 
 void main(){
 	vLightPos = vec3(1,1,1);
-	vec3 posInc = inNormal;
-	vPos    = (inPosition+vec4(posInc,0.0)).xyz;
-	vMPos   = (uModelMatrix*(inPosition+vec4(posInc,0.0))).xyz;
-	vMVPos  = (uViewMatrix*uModelMatrix*(inPosition+vec4(posInc,0.0))).xyz;
-	vMVPPos = (uProjection*uViewMatrix*uModelMatrix*(inPosition+vec4(posInc,0.0))).xyz;
+	
+	vMVPosition = uViewMatrix*uModelMatrix*inPosition;
+	gl_Position = uProjection*vMVPosition;
+	
 	vNormal = uNormalMatrix*inNormal;
+	
 	vMinorCurvature = uNormalMatrix*inMinorCurvature;
 	vMajorCurvature = uNormalMatrix*inMajorCurvature;
 	vMeanCurvature  = uNormalMatrix*inMeanCurvature;
 	
-	vDepth  = (length(vPos)/90.0);
-	vDepth  = .5 + .5*vDepth;
-	vNormalLightAngle = max(0.0,dot(vNormal,normalize(vLightPos)));
-	vColor = inColor;
-
-	gl_Position = uProjection*uViewMatrix*uModelMatrix*inPosition;
+	//Relative Depth of the object
+	vec4 esObjOrigin = uViewMatrix * uModelMatrix * vec4(0,0,0,1);
+	float distToCamera = -vMVPosition.z;
+	float distToOrigin = -esObjOrigin.z;
+	float originToVertexZ = distToOrigin - distToCamera;
+	vDepth  = originToVertexZ;
 	
+	vColor = inColor;
 }

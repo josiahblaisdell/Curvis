@@ -3,9 +3,7 @@
 
 CurvTriMesh::CurvTriMesh() :
 	m_Computed(false)
-{
-	Init();
-}
+{   Init();  }
 
 CurvTriMesh::~CurvTriMesh() { }
 
