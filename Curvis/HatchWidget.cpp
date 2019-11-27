@@ -50,6 +50,7 @@ glm::vec3 HatchWidget::CalcFaceNormal(SimpleTriFace face) {
 void HatchWidget::OnUpdate() {
 	_f->glClearColor(1, 1, 1, _isTransparent ? 0 : 1);
 	_f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	_f->glDisable(GL_LIGHTING);
 	_f->glEnable(GL_DEPTH_TEST);
 	//in order for qt to access the vao, you must set the current surface to the surface used when the vao was created.
 	_context->makeCurrent(_surface);
@@ -103,6 +104,7 @@ void HatchWidget::OnUpdate() {
 		* Final Pass: Rendering Images & LIC
 		*/
 		_ef->glEnable(GL_BLEND);
+		_ef->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		_ef->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		_ef->glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 		_ef->glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessery actually, since we won't be able to see behind the quad anyways)
@@ -200,9 +202,9 @@ bool HatchWidget::SetupFrameBufferObjects() {
 			std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 			return false;
 		}
+
 	}
 	
-
 	_ef->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	return true;
@@ -374,7 +376,6 @@ void HatchWidget::updateMesh() {
 	// Set camera to a standard position
 	m_camera.setToIdentity();
 	m_camera.translate(_m_camera_position.x(), _m_camera_position.y(), _m_camera_position.z());
-	
 }
 
 void HatchWidget::updateslot() {
