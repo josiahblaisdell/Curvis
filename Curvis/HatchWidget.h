@@ -38,6 +38,7 @@ public:
 
 	//This is our shader 
 	GLSLShader *_dataShader;
+	GLSLShader *_screenShader;
 	void update();
 	bool getCompileStatus(GLenum shadertype);
 	//is the mesh made up of polygons or triangles...
@@ -53,6 +54,7 @@ public:
 protected:
 	//Initialize the scene with a cube
 	virtual void OnInit() override;
+	bool SetupFrameBufferObjects();
 	//Draw the scene (glDrawElements(...))
 	virtual void OnUpdate() override;
 
@@ -74,7 +76,6 @@ protected:
 	GLuint m_VBO;
 	//Index buffer object ID
 	GLuint m_EBO;
-
 	//Array of vertices in mesh.
 	std::vector<glm::vec4> vertices;
 	//Array of normals in mesh
@@ -91,6 +92,25 @@ protected:
 	std::vector<glm::vec3> meancurv;
 	//Array of mean curvature for vertices in mesh
 	std::vector<float> gausscurv;
+
+
+
+	//Framebuffer 0
+	GLuint m_FBO_0;
+	//Texture 0
+	GLuint m_Tex_0;
+	//Renderbuffer 0
+	GLuint m_RBO_0;
+	//Vertex array Object ID
+	GLuint m_quad_VAO;
+	//Vertex Buffer Object ID
+	GLuint m_quad_VBO;
+	//Index buffer object ID
+	GLuint m_quad_EBO;
+	//vertices for quad
+	std::vector<glm::vec4> quad_verts;
+	std::vector<glm::vec2> quad_texcoords;
+	std::vector<GLuint> quad_indices;
 
 	glm::mat4 m_proj_view;
 	GLuint m_proj_view_id;

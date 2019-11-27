@@ -12,6 +12,16 @@ void Curvis::on_btn_loadply_clicked() {
 	shaderpaths.clear();
 	_glslAttributes.clear();
 	_glslUniforms.clear();
+	shaderpaths.push_back(".\\Shaders\\framebuffer0.vert");
+	shaderpaths.push_back(".\\Shaders\\framebuffer0.frag");
+	_glslAttributes.push_back("inPos");
+	_glslAttributes.push_back("inTexCoords");
+	_glslUniforms.push_back("uScreenTexture");
+	ui.hatchWidget->_screenShader = new GLSLShader(shaderpaths, &_glslUniforms, &_glslAttributes, ui.hatchWidget->_context, ui.hatchWidget->_surface);
+
+	shaderpaths.clear();
+	_glslAttributes.clear();
+	_glslUniforms.clear();
 	shaderpaths.push_back(".\\Shaders\\cube_vertex_shader.vert");
 	shaderpaths.push_back(".\\Shaders\\cube_frag_shader.frag");
 	_glslAttributes.push_back("inPosition");
@@ -25,6 +35,7 @@ void Curvis::on_btn_loadply_clicked() {
 	_glslUniforms.push_back("uProjection");
 	_glslUniforms.push_back("uNormalMatrix");
 	ui.hatchWidget->_dataShader = new GLSLShader(shaderpaths, &_glslUniforms, &_glslAttributes, ui.hatchWidget->_context,ui.hatchWidget->_surface);
+
 	QFile filepath = QFileDialog::getOpenFileName(this, tr("Open .vert File"), ".\\sampledata", tr("ply Files (*.ply)"));
 	plyPath = QString(filepath.fileName());
 	if (plyPath.size() == 0) return;
