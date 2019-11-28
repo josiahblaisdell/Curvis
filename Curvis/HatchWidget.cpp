@@ -30,6 +30,7 @@ bool HatchWidget::getCompileStatus(GLenum shadertype)
 		return false; break;
 	}
 }
+
 void HatchWidget::cleanup()
 {
 	if (_program == nullptr)
@@ -111,14 +112,20 @@ void HatchWidget::OnUpdate() {
 		_ef->glClear(GL_COLOR_BUFFER_BIT);
 		_screenShader->Use();
 		_ef->glBindVertexArray(m_quad_VAO);
-		_shadingShader->CheckGlErrors("Update() (Bind quad VAO)");
+		_screenShader->CheckGlErrors("Update() (Bind quad VAO)");
+
+		_screenShader->SetUniform1i("uShading", 0);
+		_screenShader->SetUniform1i("uField",   1);
+		_screenShader->SetUniform1i("uPattern", 2);
+
 		_ef->glActiveTexture(GL_TEXTURE0);
 		_ef->glBindTexture(GL_TEXTURE_2D, m_FBOTex[0]);
 		_ef->glActiveTexture(GL_TEXTURE1);
 		_ef->glBindTexture(GL_TEXTURE_2D, m_FBOTex[1]);
+		_ef->glActiveTexture(GL_TEXTURE2);
+		_ef->glBindTexture(GL_TEXTURE_2D, m_noiseTex);
 
-		_screenShader->SetUniform1i("uShading", 0);
-		_screenShader->SetUniform1i("uField",   1);
+		
 
 		_shadingShader->CheckGlErrors("Update() (Bind texture)");
 		_ef->glDrawElements(GL_QUADS, 4,GL_UNSIGNED_INT,(GLvoid*)0);
@@ -386,44 +393,57 @@ bool HatchWidget::CreateNoiseTexture(void)
 	int width = this->width();
 	int height = this->height();
 	int sz[2] = { height, width};
-	pat = new cv::Mat(2, sz, CV_8UC4, cv::Scalar::all(0));
-	phase.resize(pat->rows);
-	for (size_t i = 0; i < phase.size(); i++)
+	cv::Mat pat(2, sz, CV_8UC4, cv::Scalar::all(255));
+
+	//Noise
+	for (int i = 0; i < pat.rows; i++) {
+		for (int j = 0; j < pat.cols; j++) {
+			int idx = 4*(i * pat.cols + j);
+			unsigned char noise = (rand() % 256) < 127 ? 0 : 255;
+			pat.data[idx + 3] = noise;
+		}
+	}
+
+	int rad = 3;
+	float desity[] = { 0.00005f, 0.0002f, 0.0004f };
+	//Level 1
+	for (int k = 0; k < 3; k++)
 	{
-		phase[i].resize(pat->cols);
-	}
-	float alpha = 255;
-	unsigned int Npat = 1;
-	//---------------------------------------------------------
-	int i, j, k, t;
-	for (i = 0; i < 256; i++) lut[i] = i < 127 ? 0 : 255;
-	for (i = 0; i < phase.size(); i++) {
-		for (j = 0; j < phase[i].size(); j++) {
-			phase[i][j] = rand() % 256;
+		int num = (int)((float)(width * height) * desity[k]);
+		for (int n = 0; n < num; ++n)
+		{
+			int x = rad + (int)((float)rand() / (float)RAND_MAX * (float)(width  - 2 * rad));
+			int y = rad + (int)((float)rand() / (float)RAND_MAX * (float)(height - 2 * rad));
+			for (int rx = x - rad; rx < x + rad; ++rx)
+			{
+				for (int ry = y - rad; ry < y + rad; ++ry)
+				{
+					int idx = (ry * width) + rx;
+					pat.data[idx * 4 + k] = (1.0f - NormalDistribution((float)x, (float)y, (float)rx, (float)ry, (float)rad))*255;
+				}
+			}
 		}
 	}
-	cv::Mat_<cv::Vec4b> _pat = *pat;
-	
-	for (i = 0; i < pat->rows; i++) {
-		for (j = 0; j < pat->cols; j++) {
-			_pat(i, j)[0] = lut[(phase[i][j]) % 255];
-			_pat(i, j)[1] = lut[(phase[i][j]) % 255];
-			_pat(i, j)[2] = lut[(phase[i][j]) % 255];
-			_pat(i, j)[3] = (GLubyte)alpha;
-		}
-	}
-	cv::imshow("test", _pat);
+
+	//cv::imshow("test", pat);
 	_ef->glGenTextures(1, &m_noiseTex);
 	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (gentextures)");
 	_ef->glBindTexture(GL_TEXTURE_2D, m_noiseTex);
 	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindtexture)");
-	_ef->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pat->cols, pat->rows, 0, GL_BGRA, GL_UNSIGNED_BYTE, _pat.ptr());
+	_ef->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pat.cols, pat.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, pat.ptr());
 	_ef->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	_ef->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	_ef->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	_ef->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	_ef->glBindTexture(GL_TEXTURE_2D, 0);
 	return true;
+}
+
+inline float HatchWidget::NormalDistribution(float x0, float y0, float x1, float y1, float r)
+{
+	const static float sqrt_2_pi = 2.50662827463f;
+	float len = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0);
+	return exp(-1 * len / (r)) / sqrt_2_pi;
 }
 
 

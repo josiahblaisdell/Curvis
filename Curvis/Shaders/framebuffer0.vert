@@ -2,6 +2,7 @@
 layout (location = 0) in vec2 inPos;
 layout (location = 1) in vec2 inTexCoords;
 
+uniform sampler2D uPattern;
 uniform sampler2D uShading;
 uniform sampler2D uField;
 

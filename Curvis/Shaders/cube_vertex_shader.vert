@@ -12,6 +12,10 @@ uniform mat4 uViewMatrix;
 uniform mat4 uProjection;
 uniform mat3 uNormalMatrix;
 
+uniform sampler2D uPattern;
+uniform sampler2D uShading;
+uniform sampler2D uField;
+
 out vec4  vColor;
 out vec3  vNormal;
 out vec3  vMinorCurvature;

@@ -58,17 +58,13 @@ public:
 
 	//Create a texture of noise that looks like this: https://www.vectorstock.com/royalty-free-vector/tv-noise-texture-vector-4608313
 	bool CreateNoiseTexture();
-	
+	inline float NormalDistribution(float x0, float y0, float x1, float y1, float r);
+
 	std::vector<std::vector<int>> phase;
 	unsigned int NPN;
 	unsigned int animationSpeed;
 	unsigned int NMESH;
 	float DM;
-	int NPIX_X;
-	int NPIX_Y;
-	cv::Mat* pat;
-	//array of random numbers between 0 and 255
-	int lut[5 * 256];
 
 protected:
 	//Initialize the scene with a cube

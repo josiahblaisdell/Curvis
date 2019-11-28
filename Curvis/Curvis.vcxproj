@@ -52,11 +52,11 @@
     <Import Project="$(QtMsBuild)\qt_defaults.props" />
   </ImportGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <QtInstall>5.11.2</QtInstall>
+    <QtInstall>msvc2017_64</QtInstall>
     <QtModules>3dcore 3danimation 3dextras 3dinput 3dlogic 3drender;core;gui;opengl;openglextensions;widgets</QtModules>
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <QtInstall>5.11.2</QtInstall>
+    <QtInstall>msvc2017_64</QtInstall>
     <QtModules>3dcore 3danimation 3dextras 3dinput 3dlogic 3drender;core;gui;opengl;openglextensions;widgets</QtModules>
   </PropertyGroup>
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
