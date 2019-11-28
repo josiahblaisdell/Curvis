@@ -8,6 +8,8 @@ out vec4 gl_FragColor;
 
 void main()
 { 
-	float alpha = texture(uShading, vTexCoords).a;
-    gl_FragColor = vec4(alpha,alpha,alpha,1.0);
+	//float alpha = texture(uShading, vTexCoords).a;
+	vec4 col = texture(uShading, vTexCoords);
+    //gl_FragColor = vec4(alpha,alpha,alpha,1.0);
+	gl_FragColor = col;
 }

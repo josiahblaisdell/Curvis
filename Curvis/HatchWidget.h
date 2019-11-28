@@ -9,6 +9,7 @@
 #include "Logger.h"
 #include "GLSLWidget.h"
 #include "CurvComputer.h"
+#include <opencv.hpp>
 
 #define FBO_SIZE 2
 
@@ -54,6 +55,21 @@ public:
 	QOpenGLContext *_context;
 	//For setting the current active surface.
 	QSurface* _surface;
+
+	//Create a texture of noise that looks like this: https://www.vectorstock.com/royalty-free-vector/tv-noise-texture-vector-4608313
+	bool CreateNoiseTexture();
+	
+	std::vector<std::vector<int>> phase;
+	unsigned int NPN;
+	unsigned int animationSpeed;
+	unsigned int NMESH;
+	float DM;
+	int NPIX_X;
+	int NPIX_Y;
+	cv::Mat* pat;
+	//array of random numbers between 0 and 255
+	int lut[5 * 256];
+
 protected:
 	//Initialize the scene with a cube
 	virtual void OnInit() override;
@@ -102,6 +118,7 @@ protected:
 	GLuint m_FBO[FBO_SIZE];
 	//Texture 0
 	GLuint m_FBOTex[FBO_SIZE];
+	GLuint m_noiseTex;
 	//Renderbuffer 0
 	GLuint m_RBO[FBO_SIZE];
 	//Vertex array Object ID
