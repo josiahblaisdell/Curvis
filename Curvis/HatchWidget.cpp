@@ -379,7 +379,7 @@ void HatchWidget::updateMesh() {
 	m_camera.setToIdentity();
 	m_camera.translate(_m_camera_position.x(), _m_camera_position.y(), _m_camera_position.z());
 }
-
+//change
 bool HatchWidget::CreateNoiseTexture(void)
 {
 	_context->makeCurrent(_surface);
