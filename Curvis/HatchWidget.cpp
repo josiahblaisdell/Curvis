@@ -116,6 +116,7 @@ void HatchWidget::OnUpdate() {
 		_ef->glBindTexture(GL_TEXTURE_2D, m_FBOTex[0]);
 		_ef->glActiveTexture(GL_TEXTURE1);
 		_ef->glBindTexture(GL_TEXTURE_2D, m_FBOTex[1]);
+
 		_screenShader->SetUniform1i("uShading", 0);
 		_screenShader->SetUniform1i("uField",   1);
 
@@ -318,6 +319,7 @@ void HatchWidget::updateMesh() {
 	SetupVertexArrayObject();
 
 	SetupFrameBufferObjects();
+	CreateNoiseTexture();
 
 	//create quad data
 	//vertices..
@@ -377,6 +379,53 @@ void HatchWidget::updateMesh() {
 	m_camera.setToIdentity();
 	m_camera.translate(_m_camera_position.x(), _m_camera_position.y(), _m_camera_position.z());
 }
+//change
+bool HatchWidget::CreateNoiseTexture(void)
+{
+	_context->makeCurrent(_surface);
+	int width = this->width();
+	int height = this->height();
+	int sz[2] = { height, width};
+	pat = new cv::Mat(2, sz, CV_8UC4, cv::Scalar::all(0));
+	phase.resize(pat->rows);
+	for (size_t i = 0; i < phase.size(); i++)
+	{
+		phase[i].resize(pat->cols);
+	}
+	float alpha = 255;
+	unsigned int Npat = 1;
+	//---------------------------------------------------------
+	int i, j, k, t;
+	for (i = 0; i < 256; i++) lut[i] = i < 127 ? 0 : 255;
+	for (i = 0; i < phase.size(); i++) {
+		for (j = 0; j < phase[i].size(); j++) {
+			phase[i][j] = rand() % 256;
+		}
+	}
+	cv::Mat_<cv::Vec4b> _pat = *pat;
+	
+	for (i = 0; i < pat->rows; i++) {
+		for (j = 0; j < pat->cols; j++) {
+			_pat(i, j)[0] = lut[(phase[i][j]) % 255];
+			_pat(i, j)[1] = lut[(phase[i][j]) % 255];
+			_pat(i, j)[2] = lut[(phase[i][j]) % 255];
+			_pat(i, j)[3] = (GLubyte)alpha;
+		}
+	}
+	cv::imshow("test", _pat);
+	_ef->glGenTextures(1, &m_noiseTex);
+	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (gentextures)");
+	_ef->glBindTexture(GL_TEXTURE_2D, m_noiseTex);
+	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (glbindtexture)");
+	_ef->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pat->cols, pat->rows, 0, GL_BGRA, GL_UNSIGNED_BYTE, _pat.ptr());
+	_ef->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	_ef->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	_ef->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	_ef->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	_ef->glBindTexture(GL_TEXTURE_2D, 0);
+	return true;
+}
+
 
 void HatchWidget::updateslot() {
 	//OnUpdate();
