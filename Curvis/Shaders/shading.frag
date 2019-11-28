@@ -48,9 +48,9 @@ void main()
 	vec3 vRE = normalize(reflect(-vE,fN));
 	// 
 	float shading = ADSLighting(fN, vL, vE, vR, vRE);
-	float depth = clamp(vDepth,-1,1)*0.5+0.5;
-	float outline = dot(vNormal, -1*normalize(vMVPosition.xyz));
-	if(   outline > 0.3){outline = 1.0;}
+	float depth   = clamp(vDepth,-1,1)*0.5+0.5;
+	float outline = abs(dot(vNormal, normalize(vMVPosition.xyz)));
+	if(   outline < 0.25){outline = 1.0;}
 	else{ outline = 0.0; }
-	gl_FragColor = vec4(shading, depth, outline, 1);
+	gl_FragColor  = vec4(shading, depth, outline, 1);
 }

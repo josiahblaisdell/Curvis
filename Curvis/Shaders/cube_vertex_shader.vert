@@ -35,6 +35,8 @@ void main(){
 	vMajorCurvature = uNormalMatrix*inMajorCurvature;
 	vMeanCurvature  = uNormalMatrix*inMeanCurvature;
 	
+	vGaussCurvature = inGaussCurvature;
+	
 	//Relative Depth of the object
 	vec4 esObjOrigin = uViewMatrix * uModelMatrix * vec4(0,0,0,1);
 	float distToCamera = -vMVPosition.z;
