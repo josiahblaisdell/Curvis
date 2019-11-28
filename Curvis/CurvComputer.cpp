@@ -21,11 +21,11 @@ bool CurvComputer::Execute(CurvTriMesh* mesh)
 	//Step 4: Calculate Mean Curvature Normal
 	flag = CalaMeanCurvature(mesh);
 	if (!flag) { return false; }
-	for (int i = 0; i < 3; i++) { SmoothMeanNormal(mesh); }
+	for (int i = 0; i < 5; i++) { SmoothMeanNormal(mesh); }
 	//Step 5: Calculate Principal Curvature Direction
 	flag = CalaCurvatureDirection(mesh);
 	if (!flag) { return false; }
-	for (int i = 0; i < 3; i++) { SmoothCurvatureDirection(mesh); }
+	for (int i = 0; i < 5; i++) { SmoothCurvatureDirection(mesh); }
 	mesh->m_Computed = true;
 	return true;
 }

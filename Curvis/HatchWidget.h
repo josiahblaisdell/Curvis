@@ -11,7 +11,7 @@
 #include "CurvComputer.h"
 #include <opencv.hpp>
 
-#define FBO_SIZE 2
+#define FBO_SIZE 3
 
 struct SimplePolyFace {
 	SimplePolyFace(PolyMesh::VertexHandle p1, PolyMesh::VertexHandle p2, PolyMesh::VertexHandle p3, PolyMesh::VertexHandle p4) { v1 = p1; v2 = p2; v3 = p3; v4 = p4; }
@@ -42,6 +42,7 @@ public:
 	//This is our shader 
 	GLSLShader* _shadingShader;
 	GLSLShader* _directionShader;
+	GLSLShader* _silhouetteShader;
 	GLSLShader* _screenShader;
 	void update();
 	bool getCompileStatus(GLenum shadertype);

@@ -31,7 +31,7 @@ vec2 encode3(in vec3 v_in)
 void main()
 { 
 	//project the directions to 2D
-	vec2 major = encode2(vMajorCurvature);
-	vec2 minor = encode2(vMinorCurvature);
+	vec2 major = encode3(vMajorCurvature);
+	vec2 minor = encode3(vMinorCurvature);
 	gl_FragColor = vec4(major.xy, minor.xy);
 }

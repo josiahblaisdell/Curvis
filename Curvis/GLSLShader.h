@@ -48,7 +48,8 @@ public:
 	//Set uniform mat4 variables
 	void SetUniform(char* name, QMatrix4x4& m4);
 	void SetUniform(char * name, QMatrix3x3 & m4);
-	void SetUniform(char * name, glm::vec4 & v);
+	void SetUniform(char* name, glm::vec4& v);
+	void SetUniform(char * name, glm::vec2 & v);
 
 	void SetUniform1i(char* name, int index);
 	//Set verbose logging

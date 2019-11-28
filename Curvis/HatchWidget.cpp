@@ -102,6 +102,28 @@ void HatchWidget::OnUpdate() {
 		_directionShader->CheckGlErrors("Update() (glDrawElements())");
 		_ef->glBindVertexArray(0);
 		/*
+		* Pass 3: SilhouetteShader 
+		*/
+		_ef->glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[2]);
+		_ef->glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
+		_ef->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		_silhouetteShader->CheckGlErrors("Update() (Bind Frame Buffer)");
+
+		_silhouetteShader->Use();
+		_directionShader->CheckGlErrors("Update() (Use Shader)");
+
+		_ef->glBindVertexArray(m_VAO);
+
+		_silhouetteShader->CheckGlErrors("Update() (Use Vertex Array Obj)");
+		_silhouetteShader->SetUniform("uProjection", m_proj);
+		_silhouetteShader->SetUniform("uModelMatrix", m_world * m_scale);
+		_silhouetteShader->SetUniform("uViewMatrix", m_camera);
+		_silhouetteShader->SetUniform("uNormalMatrix", NormalMatrix);
+		_silhouetteShader->CheckGlErrors("Update() (Setting Uniforms)");
+		_ef->glDrawElements(GL_TRIANGLES, indices_n, GL_UNSIGNED_INT, (GLvoid*)0);
+		_silhouetteShader->CheckGlErrors("Update() (glDrawElements())");
+		_ef->glBindVertexArray(0);
+		/*
 		* Final Pass: Rendering Images & LIC
 		*/
 		_ef->glEnable(GL_BLEND);
@@ -114,6 +136,9 @@ void HatchWidget::OnUpdate() {
 		_ef->glBindVertexArray(m_quad_VAO);
 		_screenShader->CheckGlErrors("Update() (Bind quad VAO)");
 
+		int width = this->width();
+		int height = this->height();
+		_screenShader->SetUniform("img_size", glm::vec2(width, height));
 
 		_ef->glActiveTexture(GL_TEXTURE0);
 		_ef->glBindTexture(GL_TEXTURE_2D, m_noiseTex);
@@ -121,10 +146,13 @@ void HatchWidget::OnUpdate() {
 		_ef->glBindTexture(GL_TEXTURE_2D, m_FBOTex[0]);
 		_ef->glActiveTexture(GL_TEXTURE2);
 		_ef->glBindTexture(GL_TEXTURE_2D, m_FBOTex[1]);
+		_ef->glActiveTexture(GL_TEXTURE3);
+		_ef->glBindTexture(GL_TEXTURE_2D, m_FBOTex[2]);
 
 		_screenShader->SetUniform1i("uPattern", 0);
 		_screenShader->SetUniform1i("uShading", 1);
 		_screenShader->SetUniform1i("uField", 2);
+		_screenShader->SetUniform1i("uSilhouette", 3);
 		
 
 		_shadingShader->CheckGlErrors("Update() (Bind texture)");
