@@ -35,9 +35,9 @@ void main(){
 	
 	vNormal = uNormalMatrix*inNormal;
 	
-	vMinorCurvature = uNormalMatrix*inMinorCurvature;
-	vMajorCurvature = uNormalMatrix*inMajorCurvature;
-	vMeanCurvature  = uNormalMatrix*inMeanCurvature;
+	vMinorCurvature = inMinorCurvature;
+	vMajorCurvature = inMajorCurvature;
+	vMeanCurvature  = inMeanCurvature;
 	
 	vGaussCurvature = inGaussCurvature;
 	

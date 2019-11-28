@@ -17,21 +17,21 @@ in float vDepth;
 
 out vec4 gl_FragColor;
 
-vec2 encode_v2(in vec2 v_in)
+
+vec2 encode2(in vec3 v_in)
 {
-  return (127.5 + 127.5 * (normalize(v_in)))/255.0;
+  return 0.5 + 0.5 * normalize(v_in.xy);
 }
 
-vec3 encode_v3(in vec3 v_in)
+vec2 encode3(in vec3 v_in)
 {
-  return (127.5 + 127.5 * (normalize(v_in)))/255.0;
+  return 0.5 + 0.5 * normalize(v_in).xy;
 }
 
 void main()
 { 
 	//project the directions to 2D
-	vec2 major = encode_v2(vMajorCurvature.xy);
-	vec2 minor = encode_v2(vMinorCurvature.xy);
-	
-	gl_FragColor = vec4(major.x, major.y, minor.x, minor.y);
+	vec2 major = encode2(vMajorCurvature);
+	vec2 minor = encode2(vMinorCurvature);
+	gl_FragColor = vec4(major.xy, minor.xy);
 }

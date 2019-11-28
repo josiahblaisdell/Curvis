@@ -100,6 +100,7 @@ bool CurvTriMesh::GenVertexMajorDirectionBuffer(std::vector<glm::vec3>& out_buff
 	{
 		OpenMesh::Vec3f major = GetCurvatureDirection(v_it).first;
 		out_buffer.push_back(glm::vec3(major[0], major[1], major[2]));
+		//out_buffer.push_back(glm::vec3(1, 0, 0));
 	}
 	return true;
 }

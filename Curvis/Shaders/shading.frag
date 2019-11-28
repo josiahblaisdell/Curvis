@@ -5,9 +5,9 @@ uniform mat4 uViewMatrix;
 uniform mat4 uProjection;
 uniform mat3 uNormalMatrix;
 
-uniform float   uKa = 0.;
-uniform float   uKd = .8;
-uniform float   uKs = .2;					// coefficients of each type of lighting	
+uniform float   uKa = .05;
+uniform float   uKd = .25;
+uniform float   uKs = .7;					// coefficients of each type of lighting	
 uniform float   uShininess = 1.0;		    // specular exponent
 
 in vec4  vColor;

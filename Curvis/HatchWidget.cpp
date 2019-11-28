@@ -83,7 +83,7 @@ void HatchWidget::OnUpdate() {
 		* Pass 2: Curvature Directions
 		*/
 		_ef->glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[1]);
-		_ef->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		_ef->glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
 		_ef->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		_directionShader->CheckGlErrors("Update() (Bind Frame Buffer)");
 
@@ -114,17 +114,17 @@ void HatchWidget::OnUpdate() {
 		_ef->glBindVertexArray(m_quad_VAO);
 		_screenShader->CheckGlErrors("Update() (Bind quad VAO)");
 
-		_screenShader->SetUniform1i("uShading", 0);
-		_screenShader->SetUniform1i("uField",   1);
-		_screenShader->SetUniform1i("uPattern", 2);
 
 		_ef->glActiveTexture(GL_TEXTURE0);
-		_ef->glBindTexture(GL_TEXTURE_2D, m_FBOTex[0]);
-		_ef->glActiveTexture(GL_TEXTURE1);
-		_ef->glBindTexture(GL_TEXTURE_2D, m_FBOTex[1]);
-		_ef->glActiveTexture(GL_TEXTURE2);
 		_ef->glBindTexture(GL_TEXTURE_2D, m_noiseTex);
+		_ef->glActiveTexture(GL_TEXTURE1);
+		_ef->glBindTexture(GL_TEXTURE_2D, m_FBOTex[0]);
+		_ef->glActiveTexture(GL_TEXTURE2);
+		_ef->glBindTexture(GL_TEXTURE_2D, m_FBOTex[1]);
 
+		_screenShader->SetUniform1i("uPattern", 0);
+		_screenShader->SetUniform1i("uShading", 1);
+		_screenShader->SetUniform1i("uField", 2);
 		
 
 		_shadingShader->CheckGlErrors("Update() (Bind texture)");
@@ -393,8 +393,7 @@ bool HatchWidget::CreateNoiseTexture(void)
 	int width = this->width();
 	int height = this->height();
 	int sz[2] = { height, width};
-	cv::Mat pat(2, sz, CV_8UC4, cv::Scalar::all(255));
-
+	cv::Mat pat(2, sz, CV_8UC4, cv::Scalar::all(0));
 	//Noise
 	for (int i = 0; i < pat.rows; i++) {
 		for (int j = 0; j < pat.cols; j++) {
@@ -403,7 +402,6 @@ bool HatchWidget::CreateNoiseTexture(void)
 			pat.data[idx + 3] = noise;
 		}
 	}
-
 	int rad = 3;
 	float desity[] = { 0.00005f, 0.0002f, 0.0004f };
 	//Level 1
@@ -419,12 +417,11 @@ bool HatchWidget::CreateNoiseTexture(void)
 				for (int ry = y - rad; ry < y + rad; ++ry)
 				{
 					int idx = (ry * width) + rx;
-					pat.data[idx * 4 + k] = (1.0f - NormalDistribution((float)x, (float)y, (float)rx, (float)ry, (float)rad))*255;
+					pat.data[idx * 4 + k] = (NormalDistribution((float)x, (float)y, (float)rx, (float)ry, (float)rad))*255;
 				}
 			}
 		}
 	}
-
 	//cv::imshow("test", pat);
 	_ef->glGenTextures(1, &m_noiseTex);
 	_screenShader->CheckGlErrors("SetupFrameBufferObjects() (gentextures)");

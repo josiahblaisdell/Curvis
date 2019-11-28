@@ -17,7 +17,7 @@ bool CurvComputer::Execute(CurvTriMesh* mesh)
 	//Step 3: Calculate Gussain Curvature
 	flag = CalaGaussianCurvature(mesh);
 	if (!flag) { return false; }
-	for (int i = 0; i < 10; i++) { SmoothGaussian(mesh); }
+	for (int i = 0; i < 3; i++) { SmoothGaussian(mesh); }
 	//Step 4: Calculate Mean Curvature Normal
 	flag = CalaMeanCurvature(mesh);
 	if (!flag) { return false; }
