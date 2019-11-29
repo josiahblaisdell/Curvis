@@ -6,8 +6,8 @@ uniform mat4 uProjection;
 uniform mat3 uNormalMatrix;
 
 uniform float   uKa = .0;
-uniform float   uKd = .3;
-uniform float   uKs = .6;					// coefficients of each type of lighting	
+uniform float   uKd = .2;
+uniform float   uKs = .6;				// coefficients of each type of lighting	
 uniform float   uShininess = 4;		    // specular exponent
 
 in vec4  vColor;
@@ -27,7 +27,7 @@ float ADSLighting(vec3 vN, vec3 vL, vec3 vE, vec3 vR, vec3 vRE)
 	float ambient  = uKa;
 	float diffuse  = max(0.0, -dot(vL,vN))*uKd;
 	float specular = 0.0;
-	if(dot(vL,vE) > 0.0)
+	if(dot(vL,vE)  > 0.0)
 	{
 		specular = pow(max(0.0, -dot(vE,vR) ),1/(1+uShininess))*uKs;
 	}
@@ -50,7 +50,7 @@ void main()
 	float shading = ADSLighting(fN, vL, vE, vR, vRE);
 	float depth   = clamp(vDepth,-1,1)*0.5+0.5;
 	float outline = abs(dot(vNormal, normalize(vMVPosition.xyz)));
-	if(   outline < 0.2) {outline = 1.0;}
-	else{ outline = 0.0; }
+	if(   outline < 0.2) {outline = 0.0;}
+	else{ outline = 1.0; }
 	gl_FragColor  = vec4(shading, depth, outline, 1);
 }

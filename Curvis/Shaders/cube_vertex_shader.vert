@@ -32,7 +32,7 @@ void main(){
 	
 	vMVPosition = uViewMatrix*uModelMatrix*inPosition;
 	gl_Position = uProjection*vMVPosition;
-	
+	gl_Position.y += 0.15;
 	vNormal = uNormalMatrix*inNormal;
 	
 	vMinorCurvature = uNormalMatrix*inMinorCurvature;

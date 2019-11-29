@@ -11,7 +11,7 @@ const double PI = float(M_PI);
 double g_per_time_radio;
 //sensitivity of mouse
 #define MOUSE_ROTATED_PARAMETER 0.05
-#define WHEEL_ROTATED_PARAMETER 0.01
+#define WHEEL_ROTATED_PARAMETER 0.0025
 static float qNormalizeAngle(float angle)
 {
 	float new_angle = angle;

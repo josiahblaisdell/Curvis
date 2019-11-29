@@ -62,7 +62,7 @@ void HatchWidget::OnUpdate() {
 		* Pass 0: Shading
 		*/
 		_ef->glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[0]);
-		_ef->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		_ef->glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 		_ef->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		_shadingShader->CheckGlErrors("Update() (Bind Frame Buffer)");
 
@@ -105,7 +105,7 @@ void HatchWidget::OnUpdate() {
 		* Pass 3: SilhouetteShader 
 		*/
 		_ef->glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[2]);
-		_ef->glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
+		_ef->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		_ef->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		_silhouetteShader->CheckGlErrors("Update() (Bind Frame Buffer)");
 
@@ -188,6 +188,7 @@ void HatchWidget::OnInit() {
 	_ef = _context->extraFunctions();
 	_surface = _context->surface();
 
+	m_world.setToIdentity();
 
 	// Camera never changes in this example.
 	m_camera.setToIdentity();
