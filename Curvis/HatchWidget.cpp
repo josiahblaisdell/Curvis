@@ -83,7 +83,7 @@ void HatchWidget::OnUpdate() {
 		* Pass 2: Curvature Directions
 		*/
 		_ef->glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[1]);
-		_ef->glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
+		_ef->glClearColor(0.5f, 0.5f, 0.5f, 0.5f);
 		_ef->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		_directionShader->CheckGlErrors("Update() (Bind Frame Buffer)");
 
@@ -113,7 +113,6 @@ void HatchWidget::OnUpdate() {
 		_directionShader->CheckGlErrors("Update() (Use Shader)");
 
 		_ef->glBindVertexArray(m_VAO);
-
 		_silhouetteShader->CheckGlErrors("Update() (Use Vertex Array Obj)");
 		_silhouetteShader->SetUniform("uProjection", m_proj);
 		_silhouetteShader->SetUniform("uModelMatrix", m_world * m_scale);
@@ -474,6 +473,7 @@ inline float HatchWidget::NormalDistribution(float x0, float y0, float x1, float
 
 
 void HatchWidget::updateslot() {
+
 	//OnUpdate();
 }
 HatchWidget::~HatchWidget(){}

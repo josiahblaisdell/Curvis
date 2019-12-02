@@ -29,10 +29,9 @@ out vec4  vMVPosition;
 
 void main(){
 	vLightPos = vec3(10,10,10);
-	
 	vMVPosition = uViewMatrix*uModelMatrix*inPosition;
 	gl_Position = uProjection*vMVPosition;
-	gl_Position.y += 0.15;
+	gl_Position.y -= 0.2;
 	vNormal = uNormalMatrix*inNormal;
 	
 	vMinorCurvature = uNormalMatrix*inMinorCurvature;

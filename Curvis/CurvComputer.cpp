@@ -25,7 +25,7 @@ bool CurvComputer::Execute(CurvTriMesh* mesh)
 	//Step 5: Calculate Principal Curvature Direction
 	flag = CalaCurvatureDirection(mesh);
 	if (!flag) { return false; }
-	for (int i = 0; i < 3; i++) { SmoothCurvatureDirection(mesh); }
+	for (int i = 0; i < 10; i++) { SmoothCurvatureDirection(mesh); }
 	mesh->m_Computed = true;
 	return true;
 }
@@ -56,7 +56,7 @@ bool CurvComputer::CalaVertexProps(CurvTriMesh* mesh)
 		for (CurvTriMesh::VertexFaceIter vf_it = mesh->vf_begin(v_it); vf_it != mesh->vf_end(v_it); ++vf_it)
 		{
 			norm += mesh->normal (vf_it);
-			area += mesh->GetArea(vf_it);
+			area += mesh->GetArea(vf_it)/3.0f;
 		}
 		norm.normalize();
 		mesh->set_normal(v_it, norm);
