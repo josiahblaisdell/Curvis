@@ -45,6 +45,8 @@ public:
 	void SetUniform(char* name, glm::vec3& v3);
 	//Set uniform mat4 variables
 	void SetUniform(char* name, glm::mat4& m4);
+	//Set uniform mat3 variables
+	void SetUniform(char* name, glm::mat3& m4);
 	//Set uniform mat4 variables
 	void SetUniform(char* name, QMatrix4x4& m4);
 	void SetUniform(char * name, QMatrix3x3 & m4);

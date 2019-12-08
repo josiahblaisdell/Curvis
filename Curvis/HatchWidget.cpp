@@ -5,8 +5,8 @@ HatchWidget::HatchWidget(QWidget *parent)
 	: GLSLWidget(parent)
 {
 	_shadingShader = NULL;
-	_m_camera_position = { 0.0f, 0.0f, -7.0f };
-	_m_camera_up = QVector3D(0.0f, 1.0f, 0.0f);
+	_m_camera_position = glm::vec3(0.0f, 0.0f, -7.0f);
+	_m_camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 	connect(_shadingShader, SIGNAL(GLSLShader::fragShaderCompileSuccess), this, SLOT(DataViewerWidget::fragSuccess));
 	connect(_shadingShader, SIGNAL(GLSLShader::vertShaderCompileSuccess), this, SLOT(DataViewerWidget::vertSuccess));
 	verts_n = 0;
@@ -55,7 +55,7 @@ void HatchWidget::OnUpdate() {
 	_f->glEnable(GL_DEPTH_TEST);
 	//in order for qt to access the vao, you must set the current surface to the surface used when the vao was created.
 	_context->makeCurrent(_surface);
-	QMatrix3x3 NormalMatrix = (m_camera*m_world*m_scale).normalMatrix();
+	glm::mat3 NormalMatrix = glm::inverse(glm::transpose (m_camera*m_world*m_scale));
 
 	if (isReady) {
 		/*
@@ -115,7 +115,7 @@ void HatchWidget::OnUpdate() {
 		_ef->glBindVertexArray(m_VAO);
 		_silhouetteShader->CheckGlErrors("Update() (Use Vertex Array Obj)");
 		_silhouetteShader->SetUniform("uProjection", m_proj);
-		_silhouetteShader->SetUniform("uModelMatrix", m_world * m_scale);
+		_silhouetteShader->SetUniform("uModelMatrix", (m_world * m_scale));
 		_silhouetteShader->SetUniform("uViewMatrix", m_camera);
 		_silhouetteShader->SetUniform("uNormalMatrix", NormalMatrix);
 		_silhouetteShader->CheckGlErrors("Update() (Setting Uniforms)");
@@ -187,11 +187,11 @@ void HatchWidget::OnInit() {
 	_ef = _context->extraFunctions();
 	_surface = _context->surface();
 
-	m_world.setToIdentity();
+	m_world = glm::mat4(1.0f);
 
 	// Camera never changes in this example.
-	m_camera.setToIdentity();
-	m_camera.translate(_m_camera_position.x(), _m_camera_position.y(), _m_camera_position.z());
+	m_camera = glm::mat4(1.0f);
+	m_camera = glm::translate(glm::vec3(_m_camera_position.x, _m_camera_position.y, _m_camera_position.z));
 }
 
 bool HatchWidget::SetupFrameBufferObjects() {
@@ -411,8 +411,8 @@ void HatchWidget::updateMesh() {
 	_screenShader->CheckGlErrors("SetupVertexArrayObject() (Unbind VAO)");
 	
 	// Set camera to a standard position
-	m_camera.setToIdentity();
-	m_camera.translate(_m_camera_position.x(), _m_camera_position.y(), _m_camera_position.z());
+	m_camera = glm::mat4(1.0f);
+	m_camera = glm::translate(glm::vec3(_m_camera_position.x, _m_camera_position.y, _m_camera_position.z));
 }
 //change
 bool HatchWidget::CreateNoiseTexture(void)

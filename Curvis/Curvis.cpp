@@ -1,3 +1,4 @@
+#pragma once
 #include "Curvis.h"
 
 Curvis::Curvis(QWidget *parent)

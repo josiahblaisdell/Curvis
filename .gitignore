@@ -6,6 +6,8 @@
 *.user
 *.userosscache
 *.sln.docstates
+opencv_world412d.dll
+Curvis/opencv_world412d.dll
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

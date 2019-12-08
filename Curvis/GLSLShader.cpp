@@ -387,6 +387,21 @@ void GLSLShader::SetUniform(char * name, QMatrix4x4 & m4)
 	}
 	CheckGlErrors("SetUniform(QMatrix4x4)");
 }
+
+void GLSLShader::SetUniform(char* name, glm::mat4& m4)
+{
+	CheckGlErrors("SetUniform(glm::mat4)");
+	GLint location = _qOpenGLFunctions->glGetUniformLocation(_program, name);
+
+	if (location < 0)
+		getLog()->Write(DEBUG, "SetUniform(glm::mat4)", "Cannot find Uniform variable " + std::string(name));
+	else {
+		//getLog()->Write(DEBUG, "SetUniform(QMatrix4x4)", "Setting " + std::string(name) + " to Matrix4x4 value.");
+		_qOpenGLFunctions->glUniformMatrix4fv(location, 1, false, &m4[0][0]);
+
+	}
+	CheckGlErrors("SetUniform(glm::mat4)");
+}
 void GLSLShader::SetUniform(char * name, QMatrix3x3 & m3)
 {
 	GLint location = _qOpenGLFunctions->glGetUniformLocation(_program, name);
@@ -400,6 +415,20 @@ void GLSLShader::SetUniform(char * name, QMatrix3x3 & m3)
 	CheckGlErrors("SetUniform(QMatrix3x3)");
 }
 
+void GLSLShader::SetUniform(char* name, glm::mat3& m3)
+{
+	GLint location = _qOpenGLFunctions->glGetUniformLocation(_program, name);
+
+	if (location < 0)
+		getLog()->Write(DEBUG, "SetUniform(glm::mat3)", "Cannot find Uniform variable " + std::string(name));
+	else {
+		//getLog()->Write(DEBUG, "SetUniform(QMatrix3x3)", "Setting " + std::string(name) + " to Matrix3x3 value.");
+		_qOpenGLFunctions->glUniformMatrix3fv(location, 1, false, &m3[0][0]);
+	}
+	CheckGlErrors("SetUniform(glm::mat3)");
+}
+
+
 void GLSLShader::SetUniform(char * name, glm::vec4 & v)
 {
 	GLint location = _qOpenGLFunctions->glGetUniformLocation(_program, name);
@@ -408,8 +437,7 @@ void GLSLShader::SetUniform(char * name, glm::vec4 & v)
 		getLog()->Write(DEBUG, "SetUniform(vec4)", "Cannot find Uniform variable " + std::string(name));
 	else {
 		//getLog()->Write(DEBUG, "SetUniform(vec4)", "Setting " + std::string(name) + " to vec4 value.");
-		GLfloat glv[4] = { v.x, v.y, v.z,v.w };
-		_qOpenGLFunctions->glUniform3fv(location, 1, glv);
+		_qOpenGLFunctions->glUniform3fv(location, 1, &v[0]);
 	}
 	CheckGlErrors("SetUniform(Vec4)");
 }
@@ -422,8 +450,7 @@ void GLSLShader::SetUniform(char* name, glm::vec2& v)
 		getLog()->Write(DEBUG, "SetUniform(vec2)", "Cannot find Uniform variable " + std::string(name));
 	else {
 		//getLog()->Write(DEBUG, "SetUniform(vec2)", "Setting " + std::string(name) + " to vec42value.");
-		GLfloat glv[2] = { v.x, v.y };
-		_qOpenGLFunctions->glUniform2fv(location, 1, glv);
+		_qOpenGLFunctions->glUniform2fv(location, 1, &v[0]);
 	}
 	CheckGlErrors("SetUniform(Vec2)");
 }

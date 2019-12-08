@@ -73,8 +73,8 @@ _xRot(0),
 _yRot(0),
 _zRot(0),
 _isTransparent(false) {
-	m_scale.setToIdentity();
-	m_scale.scale(1.f, 1.f, 1.f);
+	m_scale = glm::mat4(1.0f);
+	m_scale = glm::scale(glm::vec3(1.f,1.f,1.f))*m_scale;
 	_core = QSurfaceFormat::defaultFormat().profile() == QSurfaceFormat::CoreProfile;
 	if (_isTransparent) {
 		QSurfaceFormat fmt = format();
@@ -98,8 +98,8 @@ void GLSLWidget::resizeGL(int width, int height)
 	if (0 == height) {
 		height = 1;
 	}
-	m_proj.setToIdentity();
-	m_proj.perspective(45.0f, GLfloat(width) / height, 0.01f, 100.0f);
+	m_proj = glm::mat4(1.0f);
+	m_proj = glm::perspective(45.0f, (float)width / (float)height, 0.01f, 100.0f);
 }
 
 void GLSLWidget::timerEvent(QTimerEvent * timer)
@@ -114,60 +114,69 @@ void GLSLWidget::timerEvent(QTimerEvent * timer)
 // interaction
 void GLSLWidget::mousePressEvent(QMouseEvent *e)
 {
-	_lastMousePos = e->pos();
+	_lastMousePos = glm::vec3(e->pos().x(), e->pos().y(), 0.0f);
 }
 void GLSLWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	int dx = event->x() - _lastMousePos.x();
-	int dy = event->y() - _lastMousePos.y();
-
-	if (event->buttons() & Qt::LeftButton) {
-		setXRotation(_xRot + 8 * dy);
-		setYRotation(_yRot - 8 * dx);
-	}
-	else if (event->buttons() & Qt::RightButton) {
-		setXRotation(_xRot + 8 * dy);
-		setZRotation(_zRot + 8 * dx);
-	}
-	_lastMousePos = event->pos();
-	_xRot = qNormalizeAngle(_xRot);
-	_yRot = qNormalizeAngle(_yRot);
-	_zRot = qNormalizeAngle(_zRot);
-	m_world.rotate(_xRot / 16.0f, 1, 0, 0);
-	m_world.rotate(-_yRot / 16.0f, 0, 1, 0);//track ball to get rotate axis and angle
-	m_world.rotate(_zRot / 16.0f, 0, 0, 1);//float _r = 1.0;
-	_xRot = 0;
-	_yRot = 0;
-	_zRot = 0;
+	int dx = event->x() - _lastMousePos.x;
+	int dy = event->y() - _lastMousePos.y;
+	
+	Quaternion rot1(.005*dx, vec3(1.0, 0.0, 0.0));
+	Quaternion rot2(.005*dy, vec3(0.0, 1.0, 0.0));
+	rot1.normalize();
+	rot2.normalize();
+	mat4 M1 = rot1.matrix();
+	mat4 M2 = rot2.matrix();
+	m_world = M2 * M1 * m_world;
+	//if (event->buttons() & Qt::LeftButton) {
+	//	setXRotation(_xRot + 8 * dy);
+	//	setYRotation(_yRot - 8 * dx);
+	//}
+	//else if (event->buttons() & Qt::RightButton) {
+	//	setXRotation(_xRot + 8 * dy);
+	//	setZRotation(_zRot + 8 * dx);
+	//}
+	//_lastMousePos = event->pos();
+	//_xRot = qNormalizeAngle(_xRot);
+	//_yRot = qNormalizeAngle(_yRot);
+	//_zRot = qNormalizeAngle(_zRot);
+	//m_world.rotate(_xRot / 16.0f, 1, 0, 0);
+	//m_world.rotate(-_yRot / 16.0f, 0, 1, 0);//track ball to get rotate axis and angle
+	//m_world.rotate(_zRot / 16.0f, 0, 0, 1);//float _r = 1.0;
+	//_xRot = 0;
+	//_yRot = 0;
+	//_zRot = 0;
+	_lastMousePos = glm::vec3(event->pos().x(), event->pos().y(), 0.0f);
 	update();
 }
 
 void GLSLWidget::wheelEvent(QWheelEvent *e) {
 
-	QPoint numDegrees = e->angleDelta() / 8;
-	float degree = numDegrees.y() * WHEEL_ROTATED_PARAMETER;
-	////qDebug() << degree;
-	QVector3D _cur_cam_pos = _m_camera_position;
-	QVector3D _new_cam_pos = _m_camera_position + (_m_camera_position - QVector3D(0, 0, 0)) * degree;
-	_d_cam_pos = _new_cam_pos - _cur_cam_pos;
-	m_camera.translate(_d_cam_pos);
+	//QPoint numDegrees = e->angleDelta() / 8;
+	//float degree = numDegrees.y() * WHEEL_ROTATED_PARAMETER;
+	//////qDebug() << degree;
+	//QVector3D _cur_cam_pos = _m_camera_position;
+	//QVector3D _new_cam_pos = _m_camera_position + (_m_camera_position - QVector3D(0, 0, 0)) * degree;
+	//_d_cam_pos = _new_cam_pos - _cur_cam_pos;
+	//m_camera.translate(_d_cam_pos);
 	update();
 }
 
 void GLSLWidget::keyPressEvent(QKeyEvent * e)
 {
 	if (e->key() == Qt::Key_Up) {
-		m_world.translate(0, .1, 0);
+		//m_world.translate(0, .1, 0);
+		m_world = glm::translate(vec3(0.f, 0.1f, 0.0f))* m_world;
 	}
 	if (e->key() == Qt::Key_Down) {
-		m_world.translate(0, -.1, 0);
+		m_world = glm::translate(vec3(0.f, -0.1f, 0.0f)) * m_world;
 
 	}
 	if (e->key() == Qt::Key_Left) {
-		m_world.translate(-.1, 0, 0);
+		m_world = glm::translate(vec3(-0.1f, 0.0f, 0.0f)) * m_world;
 	}
 	if (e->key() == Qt::Key_Right) {
-		m_world.translate(.1, 0, 0);
+		m_world = glm::translate(vec3(0.1f, 0.0f, 0.0f)) * m_world;
 	}
 	update();
 }

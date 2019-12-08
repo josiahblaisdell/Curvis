@@ -5,6 +5,7 @@
 #include <qfile.h>
 #include <qfiledialog.h>
 #include <stdio.h>
+#include "Quaternion.h"
 #include "VisObject.h"
 #include "GLSLShader.h"
 #include <tuple>

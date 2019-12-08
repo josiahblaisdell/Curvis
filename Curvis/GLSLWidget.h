@@ -17,6 +17,7 @@
 #include <OpenGLFiles\glm-0.9.9-a2\glm\gtc\type_ptr.hpp>
 #include <OpenGLFiles\glm-0.9.9-a2\glm\gtx\rotate_vector.hpp>
 
+
 #include <QOpenGLWidget>
 #include <QOpenGLShaderProgram>
 #include <QDebug>
@@ -28,6 +29,7 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QMatrix4x4>
+#include "Quaternion.h"
 
 /*
 * =====================================================================================
@@ -94,18 +96,19 @@ protected:
 	int  _xRot;
 	int  _yRot;
 	int  _zRot;
-	QPoint	_lastMousePos;
+	glm::vec3 _lastMousePos;
 	int _projMatrixLoc;
 	int _mvMatrixLoc;
 	int _normalMatrixLoc;
 	int _lightPosLoc;
-	QVector3D _m_camera_position;
-	QVector3D _m_camera_up;
-	QVector3D _d_cam_pos;
-	QMatrix4x4 m_proj;
-	QMatrix4x4 m_camera;
-	QMatrix4x4 m_world;
-	QMatrix4x4 m_scale;
+	glm::vec3 _m_camera_position;
+	glm::vec3 _m_camera_up;
+	glm::vec3 _d_cam_pos;
+	glm::mat4 m_proj;
+	glm::mat4 m_camera;
+	glm::mat4 m_world;
+	glm::mat4 m_scale;
+	Quaternion rot;
 	bool _isTransparent;
 
 };
