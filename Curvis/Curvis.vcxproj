@@ -23,7 +23,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <PropertyGroup Condition="'$(QtMsBuild)'=='' or !Exists('$(QtMsBuild)\qt.targets')">
@@ -32,10 +32,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IncludePath>./OpenGLFiles/opencv2;./OpenGLFiles/Freeimage;./OpenGLFiles/assimp-3.3.1/include;./OpenGLFiles/glm-0.9.9-a2;./OpenGLFiles/glew/include/GL;./OpenGLFiles/boost_1_69_0;./OpenGLFiles/OpenMesh/include;$(IncludePath)</IncludePath>
-    <LibraryPath>./OpenGLFiles/Freeimage;./OpenGLFiles/assimp-3.3.1/lib;./OpenGLFiles/glew/lib/Release/x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>./OpenGLFiles/;./OpenGLFiles/Freeimage;./OpenGLFiles/assimp-3.3.1/lib;./OpenGLFiles/glew/lib/Release/x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IncludePath>./OpenGLFiles/opencv2;./OpenGLFiles/Freeimage;./OpenGLFiles/assimp-3.3.1/include;./OpenGLFiles/glm-0.9.9-a2;./OpenGLFiles/glew/include/GL;./OpenGLFiles/boost_1_69_0;./OpenGLFiles/OpenMesh/include;$(IncludePath)</IncludePath>
+    <LibraryPath>./OpenGLFiles/Freeimage;./OpenGLFiles/assimp-3.3.1/lib;./OpenGLFiles/glew/lib/Release/x64;./OpenGLFiles/;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
@@ -53,11 +55,11 @@
     <Import Project="$(QtMsBuild)\qt_defaults.props" />
   </ImportGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <QtInstall>5.11.2</QtInstall>
+    <QtInstall>msvc2017_64</QtInstall>
     <QtModules>3dcore 3danimation 3dextras 3dinput 3dlogic 3drender;core;gui;opengl;openglextensions;widgets</QtModules>
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <QtInstall>5.11.2</QtInstall>
+    <QtInstall>msvc2017_64</QtInstall>
     <QtModules>3dcore 3danimation 3dextras 3dinput 3dlogic 3drender;core;gui;opengl;openglextensions;widgets</QtModules>
   </PropertyGroup>
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
@@ -87,11 +89,15 @@
       <DebugInformationFormat />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <AdditionalIncludeDirectories>.\OpenGLFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>./OpenGLFiles/glew/bin/Release/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32.lib;FreeImage.lib;assimp.lib;OpenMeshCore.lib;opencv_world412.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
