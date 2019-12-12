@@ -47,6 +47,13 @@ bool CurvComputer::CalaFaceProps(CurvTriMesh* mesh)
 	return true;
 }
 
+float CurvComputer::cotan(TriMesh::Point u, TriMesh::Point v) {
+	if (OpenMesh::cross(u, v).length() < 0.00001f) {
+		return 0.0f;
+	}
+	return OpenMesh::dot(u, v) / OpenMesh::cross(u, v).length();
+}
+
 bool CurvComputer::CalaVertexProps(CurvTriMesh* mesh)
 {
 	for (CurvTriMesh::VertexIter v_it = mesh->vertices_begin(); v_it != mesh->vertices_end(); ++v_it)
@@ -56,7 +63,26 @@ bool CurvComputer::CalaVertexProps(CurvTriMesh* mesh)
 		for (CurvTriMesh::VertexFaceIter vf_it = mesh->vf_begin(v_it); vf_it != mesh->vf_end(v_it); ++vf_it)
 		{
 			norm += mesh->normal (vf_it);
-			area += mesh->GetArea(vf_it)/3.0f;
+			//area += mesh->GetArea(vf_it)/3.0f;
+		}
+		//   p0
+		//   /\
+		// a/__\b
+		// p1  p2
+		CurvTriMesh::Point p0 = mesh->point(v_it);
+		for (CurvTriMesh::VertexOHalfedgeIter voh_it = mesh->voh_iter(v_it); voh_it; ++voh_it) {
+			CurvTriMesh::HalfedgeHandle voh_prev = mesh->opposite_halfedge_handle(voh_it);
+			CurvTriMesh::VertexHandle vh_prev = mesh->to_vertex_handle(mesh->next_halfedge_handle(voh_prev));
+			CurvTriMesh::Point p1 = mesh->point(vh_prev);
+			float u1 = (p1-p0).sqrnorm();
+			CurvTriMesh::HalfedgeHandle oh_cur = mesh->halfedge_handle(voh_it);
+			CurvTriMesh::VertexHandle vh_cur = mesh->to_vertex_handle(voh_it);
+			CurvTriMesh::Point p2 = mesh->point(vh_cur);
+			float v1 = (p2-p0).sqrnorm();
+			float cot_alpha = cotan(p2 - p1, p0 - p1);
+			float cot_beta = cotan(p1 - p2, p0-p2);
+			area += (u1 * cot_alpha + v1 * cot_beta)/8;
+
 		}
 		norm.normalize();
 		mesh->set_normal(v_it, norm);
@@ -150,7 +176,7 @@ bool CurvComputer::CalaMeanCurvature(CurvTriMesh* mesh)
 		float mixed_area = mesh->GetMixedArea(v_it);
 		if (mixed_area != 0.0f)
 		{
-			mean *= 0.5f / mixed_area;
+			mean *= 0.5f;
 			mesh->SetMean(v_it, mean);
 		}
 		else

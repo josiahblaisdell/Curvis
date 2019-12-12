@@ -2,6 +2,8 @@
 #define TIME_PERIOD (1000 * 1000)
 #define MINSCALE .05
 #include "GLSLWidget.h"
+#include <glm/gtx/quaternion.hpp>
+#include <qapplication.h>
 using glm::vec3;
 using glm::vec4;
 using glm::mat4;
@@ -118,34 +120,26 @@ void GLSLWidget::mousePressEvent(QMouseEvent *e)
 }
 void GLSLWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	int dx = event->x() - _lastMousePos.x;
-	int dy = event->y() - _lastMousePos.y;
-	
-	Quaternion rot1(.005*dx, vec3(1.0, 0.0, 0.0));
-	Quaternion rot2(.005*dy, vec3(0.0, 1.0, 0.0));
-	rot1.normalize();
-	rot2.normalize();
-	mat4 M1 = rot1.matrix();
-	mat4 M2 = rot2.matrix();
-	m_world = M2 * M1 * m_world;
-	//if (event->buttons() & Qt::LeftButton) {
-	//	setXRotation(_xRot + 8 * dy);
-	//	setYRotation(_yRot - 8 * dx);
-	//}
-	//else if (event->buttons() & Qt::RightButton) {
-	//	setXRotation(_xRot + 8 * dy);
-	//	setZRotation(_zRot + 8 * dx);
-	//}
-	//_lastMousePos = event->pos();
-	//_xRot = qNormalizeAngle(_xRot);
-	//_yRot = qNormalizeAngle(_yRot);
-	//_zRot = qNormalizeAngle(_zRot);
-	//m_world.rotate(_xRot / 16.0f, 1, 0, 0);
-	//m_world.rotate(-_yRot / 16.0f, 0, 1, 0);//track ball to get rotate axis and angle
-	//m_world.rotate(_zRot / 16.0f, 0, 0, 1);//float _r = 1.0;
-	//_xRot = 0;
-	//_yRot = 0;
-	//_zRot = 0;
+	if (event->buttons() == Qt::LeftButton) {
+		int dx = -event->x() + _lastMousePos.x;
+		int dy = -event->y() + _lastMousePos.y;
+		Quaternion Q1(cos((float)dx*.5f*.005f), sin((float)dx*.5f*.005f)*vec3(0.0f, 1.0f, 0.0f));
+		Q1.normalize();
+		Quaternion Q2(cos((float)dy*.5f*.005f), sin((float)dy*.5f*.005f)*vec3(1.0f, 0.0f, 0.0f));
+		Q2.normalize();
+		Quaternion Q = Q2 * Q1;
+		m_world = Q.matrix() *m_world;
+		
+	}
+	else if (event->buttons() == Qt::RightButton && !(QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier))) {
+		int dx = event->x() - _lastMousePos.x;
+		int dy = -event->y() + _lastMousePos.y;
+		m_camera = glm::translate(vec3(.005f*(float)dx, .005f*(float)dy, 0.0f))*m_camera;
+	}
+	if (event->buttons() == Qt::RightButton && QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier)) {
+		int dy = -event->y() + _lastMousePos.y;
+		m_camera = glm::translate(vec3(0.0f, 0.0f, .005f*(float)dy))*m_camera;
+	}
 	_lastMousePos = glm::vec3(event->pos().x(), event->pos().y(), 0.0f);
 	update();
 }

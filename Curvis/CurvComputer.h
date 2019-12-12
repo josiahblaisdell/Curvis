@@ -10,6 +10,7 @@ public:
 	 bool Execute(CurvTriMesh* mesh);
 private:
 	 bool CalaFaceProps(CurvTriMesh* mesh);
+	 float cotan(TriMesh::Point u, TriMesh::Point v);
 	 bool CalaVertexProps (CurvTriMesh* mesh);
 	 bool CalaGaussianCurvature(CurvTriMesh* mesh);
 	 bool CalaMeanCurvature(CurvTriMesh* mesh);
