@@ -1,6 +1,7 @@
 #pragma once
 #include "typdef.h"
 class CurvTriMesh;
+
 class CurvComputer
 {
 public:
@@ -28,5 +29,6 @@ private:
 						  float* x1, float* x2);
 	 /* major eigenvector of[a b; b c] */
 	 void eigenvector(float a, float b, float c, OpenMesh::Vec2f& e);
+
 };
 

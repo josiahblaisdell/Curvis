@@ -48,7 +48,7 @@ bool CurvComputer::CalaFaceProps(CurvTriMesh* mesh)
 }
 
 float CurvComputer::cotan(TriMesh::Point u, TriMesh::Point v) {
-	if (OpenMesh::cross(u, v).length() < 0.00001f) {
+	if (OpenMesh::cross(u, v).length() == 0.0f) {
 		return 0.0f;
 	}
 	return OpenMesh::dot(u, v) / OpenMesh::cross(u, v).length();
@@ -58,6 +58,7 @@ bool CurvComputer::CalaVertexProps(CurvTriMesh* mesh)
 {
 	for (CurvTriMesh::VertexIter v_it = mesh->vertices_begin(); v_it != mesh->vertices_end(); ++v_it)
 	{
+		float theta = mesh->angle(v_it.handle());
 		OpenMesh::Vec3f norm(0.0f);
 		float area = 0.0f;
 		for (CurvTriMesh::VertexFaceIter vf_it = mesh->vf_begin(v_it); vf_it != mesh->vf_end(v_it); ++vf_it)
@@ -86,6 +87,9 @@ bool CurvComputer::CalaVertexProps(CurvTriMesh* mesh)
 		}
 		norm.normalize();
 		mesh->set_normal(v_it, norm);
+		if (abs(area) == 0.0f) {
+			int x = 0;
+		}
 		mesh->SetMixedArea(v_it, area);
 	}
 	return true;

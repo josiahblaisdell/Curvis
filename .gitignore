@@ -262,3 +262,9 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/Curvis_EXE/Curvis/platforms/qwindows.dll
+/Curvis_EXE/Curvis/Qt5Widgets.dll
+/Curvis_EXE/Curvis/Qt5Gui.dll
+/Curvis_EXE/Curvis/Qt5Core.dll
+/Curvis_EXE/Curvis/opencv_world412.dll
+/Curvis_EXE/Curvis/Curvis.exe
